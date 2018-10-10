@@ -1,0 +1,4 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(377,5): warning MSB8004: Le répertoire Output ne se termine pas par une barre oblique finale. Cette instance de build ajoutera une barre oblique, comme requis, pour permettre l'évaluation correcte du répertoire Output.
+cl : Ligne de commande warning D9025: substitution de '/sdl' par '/GS-'
+  SnippetUtils.cpp
+c:\users\bucg2801\documents\programmation\premiermoteurphysx\solutionphysxexercice1\utils\snippetutils.cpp(32): fatal error C1083: Impossible d'ouvrir le fichier include : 'CmPhysXCommon.h' : No such file or directory
