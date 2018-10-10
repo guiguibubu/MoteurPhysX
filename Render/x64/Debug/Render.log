@@ -1,6 +1,0 @@
-﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(377,5): warning MSB8004: Le répertoire Output ne se termine pas par une barre oblique finale. Cette instance de build ajoutera une barre oblique, comme requis, pour permettre l'évaluation correcte du répertoire Output.
-C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(391,5): warning MSB8028: Le répertoire intermédiaire (x64\Debug\) contient des fichiers partagés provenant d'un autre projet (SnippetRender.vcxproj). Cela peut entraîner un comportement de nettoyage et de régénération incorrect.
-  SnippetCamera.cpp
-  SnippetRender.cpp
-  Génération de code en cours...
-  Render.vcxproj -> C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice1\Render\./../Include\SnippetRender\Lib\RenderDEBUG.lib
