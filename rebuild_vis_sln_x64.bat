@@ -1,7 +1,9 @@
 ﻿
 @echo off
 
-cls
+if "%1"=="" (
+	set skipOpen = 1
+)
 
 set pauseOpt=nopause
 
@@ -31,7 +33,9 @@ if NOT %pauseOpt% == nopause (
     pause
 )
 
-Simulation.sln
+if not defined skipOpen (
+	Simulation.sln
+)
 
 goto end:
 
