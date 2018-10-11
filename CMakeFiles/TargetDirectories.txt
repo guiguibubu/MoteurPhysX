@@ -1,4 +1,0 @@
-C:/Users/bucg2801/Documents/Programmation/PremierMoteurPhysX/SolutionPhysXExercice2/CMakeFiles/Simulation.dir
-C:/Users/bucg2801/Documents/Programmation/PremierMoteurPhysX/SolutionPhysXExercice2/CMakeFiles/Render.dir
-C:/Users/bucg2801/Documents/Programmation/PremierMoteurPhysX/SolutionPhysXExercice2/CMakeFiles/ALL_BUILD.dir
-C:/Users/bucg2801/Documents/Programmation/PremierMoteurPhysX/SolutionPhysXExercice2/CMakeFiles/ZERO_CHECK.dir
