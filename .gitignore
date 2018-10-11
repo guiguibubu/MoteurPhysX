@@ -1,1 +1,6 @@
 *.exe
+*.vcxproj*
+*.sln
+.vs
+jobfiles*.txt
+CMakeFiles/

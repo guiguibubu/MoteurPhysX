@@ -1,0 +1,1 @@
+Render/SnippetCamera.h;Render/SnippetRender.h;Render/SnippetCamera.cpp;Render/SnippetRender.cpp;CheckInstall.bat;CleanAll.bat;CMakeLists.txt;Filters.cmake

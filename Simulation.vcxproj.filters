@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice2\Simulation\SnippetHelloWorld.cpp">
+      <Filter>Sources\Simulation</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice2\Simulation\SnippetHelloWorldRender.cpp">
+      <Filter>Sources\Simulation</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice2\Simulation\ClassicMain.cpp">
+      <Filter>Sources\Simulation</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice2\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice2\CheckInstall.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice2\CleanAll.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\Users\bucg2801\Documents\Programmation\PremierMoteurPhysX\SolutionPhysXExercice2\Filters.cmake" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{C8785400-68B2-3A2B-945B-11F336106FC3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{37AB6456-029F-3E52-83BD-3DE97733E76A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Simulation">
+      <UniqueIdentifier>{D83D831F-CBCF-37FA-89DB-8C86570E860A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
