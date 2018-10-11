@@ -1,5 +1,7 @@
 *.exe
+CMakeCache.txt
 *.vcxproj
+*.vcxproj.*
 *.sln
 .vs/
 jobfiles*.txt
