@@ -23,6 +23,7 @@ SET( SIMULATION_BUILDFILES
 	CleanAll.bat
 	CMakeLists.txt
 	Filters.cmake
+	Include/ConsigneDevoir2.pdf
 )
 
 SET( SIMULATION_SRC 
