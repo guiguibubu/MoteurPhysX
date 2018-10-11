@@ -1,6 +1,6 @@
 *.exe
-*.vcxproj*
+*.vcxproj
 *.sln
-.vs
+.vs/
 jobfiles*.txt
 CMakeFiles/
