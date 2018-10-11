@@ -21,6 +21,9 @@ del /S *.vcxproj*>NUL
 del /S *.exe>NUL
 del /S *.ilk>NUL
 del /S *.pdb>NUL
+del /S jobfiles*.txt>NUL
+del /S CMakeCache.txt>NUL
+del /S cmake_install.cmake>NUL
 
 @echo off
 call DeleteSubDirectory.bat .vs

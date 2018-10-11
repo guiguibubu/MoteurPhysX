@@ -1,17 +1,11 @@
 ﻿
 @echo off
 
-if "%1"=="" (
-	set skipOpen = 1
-)
-
-set pauseOpt=nopause
+cls
 
 call CleanAll.bat noCheck
 
-if ErrorLevel == 1 (
-    goto fail
-)
+set pauseOpt=nopause
 
 @echo off
 call CheckInstall.bat CMAKE
@@ -20,21 +14,30 @@ if ErrorLevel == 1 (
     goto fail
 )
 
+
+SET bDirVar=build-solution-x64
+
+echo Removing Old Build Directory
+
+rd %bDirVar% /Q /S
+
+mkdir %bDirVar%
+
+cd %bDirVar%
+
 if exist "%CMAKE_PATH%/cmake.exe" (
-"%CMAKE_PATH%/cmake" -G "Visual Studio 15 2017 Win64"
+"%CMAKE_PATH%/cmake" .. -G "Visual Studio 15 2017 Win64"
 goto generated
 )
 
-cmake -G "Visual Studio 15 2017 Win64"
+cmake .. -G "Visual Studio 15 2017 Win64"
 
 :generated
 
+cd ..
+
 if NOT %pauseOpt% == nopause (
     pause
-)
-
-if not defined skipOpen (
-	Simulation.sln
 )
 
 goto end:
@@ -45,3 +48,9 @@ goto end:
     goto end
 
 :end
+
+:RetrievePath
+    IF EXIST "TeamInfo.team" (
+        for /f "delims== tokens=1,2" %%G in (TeamInfo.team) do set %%G=%%H
+    )
+    exit /B 0
