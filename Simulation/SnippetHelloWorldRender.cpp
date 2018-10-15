@@ -30,6 +30,7 @@
 #ifdef RENDER_SNIPPET
 
 #include <vector>
+#include <iostream>
 
 #include "PxPhysicsAPI.h"
 
@@ -51,6 +52,9 @@ Snippets::Camera*	sCamera;
 void motionCallback(int x, int y)
 {
 	sCamera->handleMotion(x, y);
+   std::cout << "xDirCam =" << sCamera->getDir().x << std::endl;
+   std::cout << "yDirCam =" << sCamera->getDir().y << std::endl;
+   std::cout << "zDirCam =" << sCamera->getDir().z << std::endl;
 }
 
 void keyboardCallback(unsigned char key, int x, int y)
@@ -100,9 +104,9 @@ void exitCallback(void)
 
 void renderLoop()
 {
-	sCamera = new Snippets::Camera(PxVec3(50.0f, 50.0f, 50.0f), PxVec3(-0.6f,-0.2f,-0.7f));
+	sCamera = new Snippets::Camera(PxVec3(-1.0f, 30.0f,-25.0f), PxVec3(0.6f,-0.2f,0.7f));
 
-	Snippets::setupDefaultWindow("PhysX Snippet HelloWorld");
+	Snippets::setupDefaultWindow("PhysX Exercice 2");
 	Snippets::setupDefaultRenderState();
 
 	glutIdleFunc(idleCallback);

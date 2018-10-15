@@ -28,6 +28,7 @@
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 
+#include <iostream>
 
 #include "SnippetCamera.h"
 #include <ctype.h>
@@ -68,6 +69,9 @@ bool Camera::handleKey(unsigned char key, int x, int y, float speed)
 	case 'D':	mEye += viewY*2.0f*speed;		break;
 	default:							return false;
 	}
+   std::cout << "xPosCam =" << mEye.x << std::endl;
+   std::cout << "yPosCam =" << mEye.y << std::endl;
+   std::cout << "zPosCam =" << mEye.z << std::endl;
 	return true;
 }
 
