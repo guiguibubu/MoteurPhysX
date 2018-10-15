@@ -32,11 +32,12 @@ add_compile_options(/std:c++latest)
 add_compile_options(/MTd)
 add_compile_definitions(RENDER_SNIPPET)
 
-project(Simulation)
-
 #Projet Simulation
 SET( SIMULATION_BUILDFILES 
-	Include/ConsigneDevoir2.pdf
+)
+
+SET( SIMULATION_HEADERS 
+	Simulation/FilterShader.h
 )
 
 SET( SIMULATION_SRC 
@@ -44,6 +45,7 @@ SET( SIMULATION_SRC
 	#Framework
 	Simulation/SnippetHelloWorld.cpp
 	Simulation/SnippetHelloWorldRender.cpp
+	Simulation/FilterShader.cpp
 
 	#Main
 	Simulation/ClassicMain.cpp
@@ -53,14 +55,13 @@ SET(jobfiles "${SIMULATION_SRC};${SIMULATION_BUILDFILES}")
 file(WRITE jobfilesSimulation.txt "${jobfiles}")
 
 add_executable(
-
 	Simulation
 	${SIMULATION_SRC}
+	${SIMULATION_HEADERS}
 	${SIMULATION_BUILDFILES}
 )
 
 SET( SIMULATION_TARGET_PROPERTIES 
-
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Bin/"
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/Bin/"
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/Bin/"
@@ -90,13 +91,11 @@ target_link_libraries (Simulation ${SIMULATION_TARGET_LINK_LIBRARIES})
 
 #Projet Render
 SET( RENDER_HEADERS 
-
 	Render/SnippetCamera.h
 	Render/SnippetRender.h
 )
 
 SET( RENDER_SRC 
-
 	Render/SnippetCamera.cpp
 	Render/SnippetRender.cpp
 )
@@ -105,9 +104,7 @@ SET(jobfiles "${RENDER_HEADERS};${RENDER_SRC};${RENDER_BUILDFILES}")
 file(WRITE jobfilesRender.txt "${jobfiles}")
 
 add_library(
-
 	Render STATIC
-	${RENDER_BUILDFILES}
 	${RENDER_HEADERS}
 	${RENDER_SRC}
 )
@@ -124,4 +121,5 @@ set_target_properties(Render PROPERTIES ${RENDER_TARGET_PROPERTIES})
 target_link_libraries (Simulation Render)
 
 CREATE_VISUAL_STUDIO_FILTERS(SIMULATION)
+CREATE_VISUAL_STUDIO_FILTERS(RENDER)
 

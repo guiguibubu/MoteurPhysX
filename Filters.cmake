@@ -2,9 +2,9 @@ FUNCTION(POPULATE_TREE files targetdir)
 
 	FOREACH(file ${files})
 
-	    GET_FILENAME_COMPONENT(dir "${file}" DIRECTORY)
+	    GET_FILENAME_COMPONENT(fileName "${file}" NAME)
 
-	    SET(target_group "${targetdir}\\${dir}")
+	    SET(target_group "${targetdir}")
 	    STRING(REPLACE / \\ target_group ${target_group})
 
 	    SOURCE_GROUP("${target_group}" FILES ${file})
