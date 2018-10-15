@@ -8,3 +8,7 @@ cmake_install.cmake
 jobfiles*.txt
 CMakeFiles/
 build-solution-x64/
+*.ilk
+*.pdb
+*.tmp
+*.bsc

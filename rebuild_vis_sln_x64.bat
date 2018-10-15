@@ -3,6 +3,8 @@
 
 cls
 
+set openWhenFinish=%1
+
 call CleanAll.bat noCheck
 
 set pauseOpt=nopause
@@ -38,6 +40,10 @@ cd ..
 
 if NOT %pauseOpt% == nopause (
     pause
+)
+
+if "%openWhenFinish%"=="-o" (
+	.\%bDirVar%\Simulation.sln
 )
 
 goto end:

@@ -10,19 +10,32 @@ include_directories(
 # Filters
 include( Filters.cmake )
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Bin/")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Bin/")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Bin/")
+SET (SIMULATION_INCLUDE_DIR
+	${CMAKE_SOURCE_DIR}/Include
+	${CMAKE_SOURCE_DIR}/Include/Graphics/include/win32/GL
+	${CMAKE_SOURCE_DIR}/Include/PxShared/include
+	${CMAKE_SOURCE_DIR}/Include/PxInclude
+)
+
+include_directories(${SIMULATION_INCLUDE_DIR})
+
+SET (SIMULATION_LIB_DIR
+	${CMAKE_SOURCE_DIR}/Include/PxShared/lib/vc15win64
+	${CMAKE_SOURCE_DIR}/Include/SnippetUtils/Lib
+	${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib
+	${CMAKE_SOURCE_DIR}/Include/Graphics/lib/win64/glut
+	${CMAKE_SOURCE_DIR}/API_PhysX/Lib
+)
+link_directories(${SIMULATION_LIB_DIR})
+
+add_compile_options(/std:c++latest)
+add_compile_options(/MTd)
+add_compile_definitions(RENDER_SNIPPET)
 
 project(Simulation)
 
 #Projet Simulation
 SET( SIMULATION_BUILDFILES 
-
-	CheckInstall.bat
-	CleanAll.bat
-	CMakeLists.txt
-	Filters.cmake
 	Include/ConsigneDevoir2.pdf
 )
 
@@ -46,19 +59,36 @@ add_executable(
 	${SIMULATION_BUILDFILES}
 )
 
-SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib/")
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib/")
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib/")
+SET( SIMULATION_TARGET_PROPERTIES 
 
-#Projet Render
-SET( RENDER_BUILDFILES 
-
-	CheckInstall.bat
-	CleanAll.bat
-	CMakeLists.txt
-	Filters.cmake
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Bin/"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/Bin/"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/Bin/"
 )
 
+SET( SIMULATION_TARGET_LINK_LIBRARIES 
+	PhysX3CharacterKinematicDEBUG_x64.lib
+	PhysX3CommonDEBUG_x64.lib
+	PhysX3CookingDEBUG_x64.lib
+	PhysX3DEBUG_x64.lib
+	PhysX3ExtensionsDEBUG.lib
+	PhysX3VehicleDEBUG.lib
+	SceneQueryDEBUG.lib
+	SimulationControllerDEBUG.lib
+	glut32.lib
+	PsFastXmlDEBUG_x64.lib
+	PxFoundationDEBUG_x64.lib
+	PxPvdSDKDEBUG_x64.lib
+	PxTaskDEBUG_x64.lib
+	RenderDEBUG.lib
+	SnippetUtilsDEBUG.lib
+)
+
+set_target_properties(Simulation  PROPERTIES ${SIMULATION_TARGET_PROPERTIES})
+
+target_link_libraries (Simulation ${SIMULATION_TARGET_LINK_LIBRARIES})
+
+#Projet Render
 SET( RENDER_HEADERS 
 
 	Render/SnippetCamera.h
@@ -82,6 +112,16 @@ add_library(
 	${RENDER_SRC}
 )
 
+SET( RENDER_TARGET_PROPERTIES 
+	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib/"
+	ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib/"
+	ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib/"
+)
+
+set_target_properties(Render PROPERTIES ARCHIVE_OUTPUT_NAME_DEBUG "RenderDEBUG")
+set_target_properties(Render PROPERTIES ${RENDER_TARGET_PROPERTIES})
+
+target_link_libraries (Simulation Render)
 
 CREATE_VISUAL_STUDIO_FILTERS(SIMULATION)
 
