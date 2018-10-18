@@ -42,6 +42,7 @@
 #include "Incopiable.h"
 #include "SimulationRender.h"
 #include "MyCallback.h"
+#include "Minuteur.h"
 
 #include <chrono>
 #include <vector>
@@ -71,11 +72,16 @@ class Simulation : public Incopiable, SimulationRender {
    unsigned short nbBalls;
    signed short vitesseBall;
 
-   std::chrono::time_point<std::chrono::high_resolution_clock> oldTime;
+   unsigned short dTArret;
+   //unsigned short dtChronoOld;
+   Minuteur minuteur;
+
+   //std::chrono::time_point<std::chrono::high_resolution_clock> oldTime;
 
    physx::PxRigidDynamic* pWall;
    std::vector<physx::PxRigidDynamic*> listBall;
    std::vector<unsigned short> listIdBallTouched;
+   bool lastBallTouch = false;
 
    MyCallback filterShader;
 
@@ -103,7 +109,10 @@ class Simulation : public Incopiable, SimulationRender {
       nbBallsMax{ 4 },
       nbBalls{ 0 },
       vitesseBall{ 50 },
-      oldTime{ std::chrono::high_resolution_clock::now() }
+      dTArret{ 10 },
+      //dtChronoOld{ 0 },
+      //oldTime{ std::chrono::high_resolution_clock::now() }
+      minuteur{}
    {}
 
 public:

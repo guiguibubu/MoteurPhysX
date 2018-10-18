@@ -7,6 +7,11 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+set_property(GLOBAL PROPERTY CMAKE_SKIP_INSTALL_ALL_DEPENDENCY  ON)
+set_property(GLOBAL PROPERTY CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY  ON)
+set_property(GLOBAL PROPERTY CMAKE_SUPPRESS_REGENERATION  ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Filters
 include( Filters.cmake )
 
@@ -48,6 +53,7 @@ SET( SIMULATION_HEADERS
 	Simulation/SnippetCamera.h
 	Simulation/SnippetRender.h
 	Simulation/Incopiable.h
+	Simulation/Minuteur.h
 )
 
 SET( SIMULATION_SRC 
@@ -59,6 +65,7 @@ SET( SIMULATION_SRC
 	Simulation/SampleAllocator.cpp
 	Simulation/SnippetCamera.cpp
 	Simulation/SnippetRender.cpp
+	Simulation/Minuteur.cpp
 
 	#Main
 	Simulation/ClassicMain.cpp

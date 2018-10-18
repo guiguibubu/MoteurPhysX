@@ -66,7 +66,9 @@ physx::PxRigidDynamic* Simulation::createWall(const physx::PxTransform& t, physx
    pWall = gPhysics->createRigidDynamic(t);
    pWall->attachShape(*shape);
    physx::PxRigidBodyExt::updateMassAndInertia(*pWall, 10.0f);
+   pWall->setRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum::eLOCK_LINEAR_X | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z);
    gScene->addActor(*pWall);
+   pWall->setSleepThreshold(physx::PxReal{ 0 });
    shape->release();
 
    physx::PxU32 filterMask = 0;
@@ -124,14 +126,35 @@ void Simulation::stepPhysics(bool interactive)
 {
    PX_UNUSED(interactive);
    // toutes les 3 secondes on envoit une balle
-   auto now = std::chrono::high_resolution_clock::now();
-   auto dt = std::chrono::duration_cast<std::chrono::seconds>(now - oldTime).count();
-
-
-   if (nbBalls == 0 || (dt >= dTBalls && nbBalls < nbBallsMax)) {
+   if (nbBalls == 0) {
       nbBalls++;
-      oldTime = now;
-      createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0, 0), nbBalls);
+      createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0.f, 0.f), nbBalls);
+   } else if (nbBalls < nbBallsMax) {
+      if (!minuteur.isConfigured()) {
+         minuteur.setDecompte(dTBalls);
+         minuteur.start();
+      }
+      else {
+         minuteur.refresh();
+         if (minuteur.isFinished()) {
+            nbBalls++;
+            createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0.f, 0.f), nbBalls);
+         }
+      }
+   }
+   //Quand la derniere balle a touchee, on eteint la simulation au bout de 5 secondes
+   else if (lastBallTouch) {
+      if (!minuteur.isConfigured()) {
+         minuteur.setDecompte(dTArret);
+         minuteur.start();
+         std::cout << dTArret << " secondes avant arret !" << std::endl;
+      }
+      else {
+         minuteur.refresh();
+         if (minuteur.isFinished()) {
+            cleanupPhysics(interactive);
+         }
+      }
    }
 
    while (!listIdBallTouched.empty()) {
@@ -163,8 +186,8 @@ void Simulation::keyPress(unsigned char key, const physx::PxTransform& camera)
 {
    switch (toupper(key))
    {
-   case ' ':	createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0, 0));	break;
-   case 'C':	createBall(camera, 3.0f, camera.rotate(physx::PxVec3(0, 0, -1)) * 200);	break;
+   case ' ':	createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0.f, 0.f));	break;
+   case 'C':	createBall(camera, 3.f, camera.rotate(physx::PxVec3(0.f, 0.f, -1.f)) * 200);	break;
    }
 }
 
@@ -251,7 +274,12 @@ void Simulation::gestionCollision(const unsigned short indexBall) {
    case 1: break;
    case 2: break;
    case 3: ball->setLinearVelocity(physx::PxVec3(0.f, 50.f, 0.f)); break;
-   case 4: if (ball->getLinearVelocity().magnitude() != 0.5f*vitesseBall) { ball->setLinearVelocity(0.5f*ball->getLinearVelocity()); }; break;
+   case 4:
+      if (ball->getLinearVelocity().magnitude() != 0.5f*vitesseBall) {
+         ball->setLinearVelocity(0.5f*ball->getLinearVelocity());
+         lastBallTouch = true;
+      }
+      break;
    default: break;
    }
 
