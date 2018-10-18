@@ -31,7 +31,7 @@
 #ifndef PHYSX_SNIPPET_CAMERA_H
 #define PHYSX_SNIPPET_CAMERA_H
 
-#include "foundation/PxTransform.h"
+//#include "foundation/PxTransform.h"
 
 namespace Snippets
 {
