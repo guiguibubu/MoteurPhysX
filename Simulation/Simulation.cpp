@@ -47,58 +47,74 @@
 #include <sstream>
 #include <chrono>
 
-physx::PxRigidDynamic* Simulation::createBall(const physx::PxTransform& t, const physx::PxReal& rayon, const physx::PxVec3& velocity, const unsigned short indexBall)
-{
-   physx::PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, physx::PxSphereGeometry(rayon), *gMaterial, 10.0f);
-   dynamic->setAngularDamping(0.5f);
-   dynamic->setLinearVelocity(velocity);
-   gScene->addActor(*dynamic);
-   if (indexBall) {
-      setupFiltering(dynamic, getBallFilterGroup(indexBall), FilterGroup::eWALL);
-   }
-   listBall.push_back(dynamic);
-   return dynamic;
-}
+physx::PxRigidDynamic* Simulation::createVehicule(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ) {
 
-physx::PxRigidDynamic* Simulation::createWall(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ)
-{
+   std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>> shape = std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>>(
+      gPhysics->createShape(physx::PxBoxGeometry(halfExtendX, halfExtendY, halfExtendZ), *gMaterial, true, physx::PxShapeFlag::eSIMULATION_SHAPE)
+      , Simulation::elementPhysXBaseDeleter
+      );
+   
+   pVehicule = std::make_unique<Vehicule>(10.f, t, shape.get(), gPhysics.get(), gMaterial.get());
+
+   gScene->addActor(*pVehicule->getRigidBody());
+
+   physx::PxU32 filterMask = 0;
+   filterMask |= FilterGroup::eBALLE;
+   filterMask |= FilterGroup::eCARGO;
+   setupFiltering(pVehicule->getRigidBody(), FilterGroup::eVEHICULE, filterMask);
+
+   return pVehicule->getRigidBody();
+}
+physx::PxRigidDynamic* Simulation::createCargo(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ) {
    physx::PxShape* shape = gPhysics->createShape(physx::PxBoxGeometry(halfExtendX, halfExtendY, halfExtendZ), *gMaterial, true, physx::PxShapeFlag::eSIMULATION_SHAPE);
-   pWall = gPhysics->createRigidDynamic(t);
-   pWall->attachShape(*shape);
-   physx::PxRigidBodyExt::updateMassAndInertia(*pWall, 10.0f);
-   pWall->setRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum::eLOCK_LINEAR_X | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z);
-   gScene->addActor(*pWall);
-   pWall->setSleepThreshold(physx::PxReal{ 0 });
+   pCargo = std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>>(gPhysics->createRigidDynamic(t), Simulation::elementPhysXBaseDeleter);
+   pCargo->attachShape(*shape);
+   physx::PxRigidBodyExt::updateMassAndInertia(*pCargo, 10.0f);
+   pCargo->setRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
+   gScene->addActor(*pCargo);
+   pCargo->setSleepThreshold(physx::PxReal{ 0 });
    shape->release();
 
    physx::PxU32 filterMask = 0;
-   for (unsigned short i = 0; i != nbBallsMax; i++) {
-      filterMask |= getBallFilterGroup(i + 1);
-      setupFiltering(pWall, FilterGroup::eWALL, filterMask);
-   }
-   filterShader = MyCallback::MyCallback();
-   return pWall;
+   filterMask |= FilterGroup::eBALLE;
+   filterMask |= FilterGroup::eVEHICULE;
+   filterMask |= FilterGroup::eGOAL;
+   setupFiltering(pCargo.get(), FilterGroup::eCARGO, filterMask);
+
+   return pCargo.get();
+}
+physx::PxRigidDynamic* Simulation::createGoal(const physx::PxTransform& t, physx::PxReal rayon, physx::PxReal hauteur) {
+
+   pGoal = std::make_unique<Goal>(rayon, hauteur, t, gPhysics.get(), gMaterial.get());
+
+   gScene->addActor(*pGoal->getRigidBody());
+
+   physx::PxU32 filterMask = 0;
+   filterMask |= FilterGroup::eCARGO;
+   setupFiltering(pGoal->getRigidBody(), FilterGroup::eGOAL, filterMask);
+
+   return pGoal->getRigidBody();
 }
 
 void Simulation::initPhysics(bool interactive)
 {
    initSampleAllocator();
 
-   gFoundation = PxCreateFoundation(PX_FOUNDATION_VERSION, gAllocator, gErrorCallback);
+   gFoundation = std::unique_ptr<physx::PxFoundation, std::function<void(physx::PxFoundation*)>>(PxCreateFoundation(PX_FOUNDATION_VERSION, gAllocator, gErrorCallback), Simulation::elementPhysXFoundationDeleter);
 
-   gPvd = PxCreatePvd(*gFoundation);
+   gPvd = std::unique_ptr<physx::PxPvd, std::function<void(physx::PxPvd*)>>(PxCreatePvd(*gFoundation), Simulation::elementPhysXPvdDeleter);
    physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate(PVD_HOST, 5425, 10);
    gPvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
 
-   gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), true, gPvd);
+   gPhysics = std::unique_ptr<physx::PxPhysics, std::function<void(physx::PxPhysics*)>>(PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), true, gPvd.get()), Simulation::elementPhysXPhysicsDeleter);
 
    physx::PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
-   // On supprime la gravite
-   sceneDesc.gravity = physx::PxVec3(0.0f, 0.0f, 0.0f);
-   gDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
-   sceneDesc.cpuDispatcher = gDispatcher;
+   // On met la gravite
+   sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
+   gDispatcher = std::unique_ptr<physx::PxDefaultCpuDispatcher, std::function<void(physx::PxDefaultCpuDispatcher*)>>(physx::PxDefaultCpuDispatcherCreate(2), Simulation::elementPhysXDispatcherDeleter);
+   sceneDesc.cpuDispatcher = gDispatcher.get();
    sceneDesc.filterShader = myFilterShader;
-   gScene = gPhysics->createScene(sceneDesc);
+   gScene = std::unique_ptr<physx::PxScene, std::function<void(physx::PxScene*)>>(gPhysics->createScene(sceneDesc), Simulation::elementPhysXSceneDeleter);
 
    gScene->setVisualizationParameter(physx::PxVisualizationParameter::eSCALE, 1.0f);
 
@@ -109,13 +125,14 @@ void Simulation::initPhysics(bool interactive)
       pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
       pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
    }
-   gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+   gMaterial = std::unique_ptr<physx::PxMaterial, std::function<void(physx::PxBase*)>>(gPhysics->createMaterial(0.5f, 0.5f, 0.6f), Simulation::elementPhysXBaseDeleter);
 
    physx::PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, physx::PxPlane(0, 1, 0, 0), *gMaterial);
    groundPlane->setActorFlags(physx::PxActorFlag::eVISUALIZATION);
    gScene->addActor(*groundPlane);
 
-   createWall(positionWall, 2.0f, 8.0f, 8.0f);
+   createVehicule(positionVehiculeInit, 5.0f, 5.0f, 5.0f);
+   createGoal(positionGoalInit, 100.f,100.f);
 
    gScene->setContactModifyCallback(&filterShader);
    gScene->setSimulationEventCallback(&filterShader);
@@ -125,42 +142,31 @@ void Simulation::initPhysics(bool interactive)
 void Simulation::stepPhysics(bool interactive)
 {
    PX_UNUSED(interactive);
-   // toutes les 3 secondes on envoit une balle
-   if (nbBalls == 0) {
-      nbBalls++;
-      createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0.f, 0.f), nbBalls);
-   } else if (nbBalls < nbBallsMax) {
+   if (tirDemande) {
       if (!minuteur.isConfigured()) {
          minuteur.setDecompte(dTBalls);
          minuteur.start();
+         auto balle = pVehicule->tir(rayonBall, vitesseBall);
+
+         physx::PxU32 filterMask = 0;
+         filterMask |= FilterGroup::eBALLE;
+         filterMask |= FilterGroup::eVEHICULE;
+         filterMask |= FilterGroup::eGOAL;
+         filterMask |= FilterGroup::eCARGO;
+         setupFiltering(balle->getRigidBody(), FilterGroup::eBALLE, filterMask);
+
       }
       else {
          minuteur.refresh();
          if (minuteur.isFinished()) {
-            nbBalls++;
-            createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0.f, 0.f), nbBalls);
          }
       }
+      // on desamorce la demande de tir
+      tirDemande = false;
    }
    //Quand la derniere balle a touchee, on eteint la simulation au bout de 5 secondes
-   else if (lastBallTouch) {
-      if (!minuteur.isConfigured()) {
-         minuteur.setDecompte(dTArret);
-         minuteur.start();
-         std::cout << dTArret << " secondes avant arret !" << std::endl;
-      }
-      else {
-         minuteur.refresh();
-         if (minuteur.isFinished()) {
-            cleanupPhysics(interactive);
-         }
-      }
-   }
-
-   while (!listIdBallTouched.empty()) {
-      unsigned short index = listIdBallTouched.back();
-      Simulation::gestionCollision(index);
-      listIdBallTouched.pop_back();
+   if (goalTouch) {
+      changeGoalPosition(&positionGoalInit);
    }
 
    gScene->simulate(1.0f / 60.0f);
@@ -169,25 +175,28 @@ void Simulation::stepPhysics(bool interactive)
 
 void Simulation::cleanupPhysics(bool interactive)
 {
-   PX_UNUSED(interactive);
-   gScene->release();
-   gDispatcher->release();
-   gPhysics->release();
-   physx::PxPvdTransport* transport = gPvd->getTransport();
-   gPvd->release();
-   transport->release();
+   if (!sceneCleanUp) {
+      PX_UNUSED(interactive);
+      gScene->release();
+      gDispatcher->release();
+      gPhysics->release();
+      physx::PxPvdTransport* transport = gPvd->getTransport();
+      gPvd->release();
+      transport->release();
 
-   gFoundation->release();
+      gFoundation->release();
 
-   printf("PhysX Exercice 2 done.\n");
+      sceneCleanUp = true;
+
+      printf("PhysX Exercice 2 done.\n");
+   }
 }
 
 void Simulation::keyPress(unsigned char key, const physx::PxTransform& camera)
 {
    switch (toupper(key))
    {
-   case ' ':	createBall(physx::PxTransform(positionWall.p + physx::PxVec3(vitesseBall, 0.f, 0.f)), 1.f, physx::PxVec3(-vitesseBall, 0.f, 0.f));	break;
-   case 'C':	createBall(camera, 3.f, camera.rotate(physx::PxVec3(0.f, 0.f, -1.f)) * 200);	break;
+   case ' ':	tirDemande = true;	break;
    }
 }
 
@@ -266,7 +275,7 @@ void keyPress(unsigned char key, physx::PxTransform& camera) {
    Simulation::get().keyPress(key, camera);
 }
 
-
+/*
 // GESTION COLLISION
 void Simulation::gestionCollision(const unsigned short indexBall) {
    physx::PxRigidDynamic* ball = listBall[indexBall - 1];
@@ -284,3 +293,4 @@ void Simulation::gestionCollision(const unsigned short indexBall) {
    }
 
 }
+*/

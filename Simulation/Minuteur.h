@@ -3,6 +3,9 @@
 #ifndef MINUTEUR_H
 #define MINUTEUR_H
 
+/*
+   Minuteur en milliseconde
+*/
 class Minuteur {
    using duree_t = unsigned int;
    using time_point_t = std::chrono::high_resolution_clock::time_point;

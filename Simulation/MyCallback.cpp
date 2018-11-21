@@ -13,25 +13,14 @@ void MyCallback::onContactModify(physx::PxContactModifyPair* const pairs, physx:
       auto shape0Id = pairs->shape[0]->getSimulationFilterData().word0;
       auto shape1Id = pairs->shape[1]->getSimulationFilterData().word0;
 
-      if ((shape0Id == Simulation::getWallFilterGroup()) || (shape1Id == Simulation::getWallFilterGroup()))
+      if ((shape0Id == Simulation::FilterGroup::eGOAL) || (shape1Id == Simulation::FilterGroup::eGOAL))
       {
-         auto filterData = (shape0Id == Simulation::getWallFilterGroup()) ? pairs->shape[1]->getSimulationFilterData() : pairs->shape[0]->getSimulationFilterData();
+         auto filterData = (shape0Id == Simulation::FilterGroup::eGOAL) ? pairs->shape[1]->getSimulationFilterData() : pairs->shape[0]->getSimulationFilterData();
          auto IdOtherObject = filterData.word0;
 
-         short index = 0;
-         bool found = false;
-         while (index < Simulation::get().getNbBallMax() && !found) {
-            found = Simulation::getBallFilterGroup(++index) == IdOtherObject;
-            i++;
-         }
-         Simulation::get().contactDetected(index);
-
-         switch (index) {
-         case 1: break;
-         case 2: pairs->contacts.ignore(0); break;
-         case 3: break;
-         case 4: pairs->contacts.ignore(0); break;
-         default: break;
+         switch (IdOtherObject) {
+         case Simulation::FilterGroup::eCARGO: Simulation::get().goalAtteint();  break;
+         default: pairs->contacts.ignore(0); break;
          }
 
          break;
@@ -43,25 +32,25 @@ void MyCallback::onContact(const physx::PxContactPairHeader& pairHeader, const p
    std::cout << "onContact" << std::endl;
    for (physx::PxU32 i = 0; i < nbPairs; i++)
    {
-      const physx::PxContactPair& cp = pairs[i];
+      //const physx::PxContactPair& cp = pairs[i];
 
-      if (cp.events & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
-      {
-         if ((pairHeader.actors[0] == Simulation::get().getWall()) || (pairHeader.actors[1] == Simulation::get().getWall()))
-         {
-            auto filterData = (Simulation::get().getWall() == pairHeader.actors[0]) ? pairs->shapes[1]->getSimulationFilterData() : pairs->shapes[0]->getSimulationFilterData();
-            auto IdOtherObject = filterData.word0;
+      //if (cp.events & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+      //{
+      //   if ((pairHeader.actors[0] == Simulation::get().getWall()) || (pairHeader.actors[1] == Simulation::get().setWall()))
+      //   {
+      //      auto filterData = (Simulation::get().setWall() == pairHeader.actors[0]) ? pairs->shapes[1]->getSimulationFilterData() : pairs->shapes[0]->getSimulationFilterData();
+      //      auto IdOtherObject = filterData.word0;
 
-            short index = 0;
-            bool found = false;
-            while (index < Simulation::get().getNbBallMax() && !found) {
-               found = Simulation::getBallFilterGroup(++index) == IdOtherObject;
-               i++;
-            }
-            Simulation::get().contactDetected(index);
-            break;
-         }
-      }
+      //      short index = 0;
+      //      bool found = false;
+      //      while (index < Simulation::get().getNbBallMax() && !found) {
+      //         found = Simulation::getBallFilterGroup(++index) == IdOtherObject;
+      //         i++;
+      //      }
+      //      Simulation::get().contactDetected(index);
+      //      break;
+      //   }
+      //}
    }
 }
 

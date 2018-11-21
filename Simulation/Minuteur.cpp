@@ -43,7 +43,7 @@ void Minuteur::start() {
 
 void Minuteur::refresh() {
    if (!finished && started) {
-      dT = dureeSeconds(oldTime, now());
+      dT = dureeMilliseconds(oldTime, now());
       finished = dT == timeToReech;
       started = !finished;
       timeToReech = (finished) ? 0 : timeToReech;

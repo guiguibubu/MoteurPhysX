@@ -43,77 +43,75 @@
 #include "SimulationRender.h"
 #include "MyCallback.h"
 #include "Minuteur.h"
+#include "Balle.h"
+#include "Vehicule.h"
+#include "Goal.h"
 
 #include <chrono>
 #include <vector>
 #include <map>
+
+class Balle;
+class Vehicule;
+class Goal;
 
 class Simulation : public Incopiable, SimulationRender {
 
    physx::PxDefaultAllocator		gAllocator;
    physx::PxDefaultErrorCallback	gErrorCallback;
 
-   physx::PxFoundation*			   gFoundation;
-   physx::PxPhysics*				   gPhysics;
+   std::unique_ptr<physx::PxFoundation, std::function<void(physx::PxFoundation*)>>			             gFoundation;
+   std::unique_ptr<physx::PxPhysics, std::function<void(physx::PxPhysics*)>>				             gPhysics;
 
-   physx::PxDefaultCpuDispatcher*	gDispatcher;
-   physx::PxScene*				      gScene;
+   std::unique_ptr<physx::PxDefaultCpuDispatcher, std::function<void(physx::PxDefaultCpuDispatcher*)>>	 gDispatcher;
+   std::unique_ptr<physx::PxScene, std::function<void(physx::PxScene*)>>				                 gScene;
 
-   physx::PxMaterial*				   gMaterial;
+   std::unique_ptr<physx::PxMaterial, std::function<void(physx::PxBase*)>>				                 gMaterial;
 
-   physx::PxPvd*                  gPvd;
+   std::unique_ptr<physx::PxPvd, std::function<void(physx::PxPvd*)>>                                     gPvd;
 
    physx::PxReal stackZ;
 
-   physx::PxTransform positionWall;
+   physx::PxTransform positionVehiculeInit;
+   physx::PxTransform positionCargoInit;
+   physx::PxTransform positionGoalInit;
+
+   bool sceneCleanUp = false;
 
    unsigned short dTBalls;
-   unsigned short nbBallsMax;
-   unsigned short nbBalls;
    signed short vitesseBall;
+   physx::PxReal rayonBall;
 
-   unsigned short dTArret;
-   //unsigned short dtChronoOld;
    Minuteur minuteur;
 
-   //std::chrono::time_point<std::chrono::high_resolution_clock> oldTime;
-
-   physx::PxRigidDynamic* pWall;
-   std::vector<physx::PxRigidDynamic*> listBall;
+   std::vector<std::unique_ptr<Balle>> listBall;
    std::vector<unsigned short> listIdBallTouched;
-   bool lastBallTouch = false;
+
+   bool goalTouch = false;
+   bool tirDemande = false;
+
+   std::unique_ptr<Vehicule> pVehicule;
+   std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> pCargo;
+   std::unique_ptr<Goal> pGoal;
 
    MyCallback filterShader;
-
-   struct FilterGroup
-   {
-      enum TypeObject
-      {
-         eWALL = (1 << 0),
-      };
-   };
 
    // SINGLETON
    Simulation() :
       gAllocator{},
       gErrorCallback{},
-      gFoundation{ NULL },
-      gPhysics{ NULL },
-      gDispatcher{ NULL },
-      gScene{ NULL },
-      gMaterial{ NULL },
-      gPvd{ NULL },
       stackZ{ 10.0f },
-      positionWall{ physx::PxTransform(physx::PxVec3(15.0f, 8.0f, 0.0f)) },
-      dTBalls{ 3 }, //3 secondes entre chaque balle
-      nbBallsMax{ 4 },
-      nbBalls{ 0 },
-      vitesseBall{ 50 },
-      dTArret{ 10 },
-      //dtChronoOld{ 0 },
-      //oldTime{ std::chrono::high_resolution_clock::now() }
-      minuteur{}
-   {}
+      positionVehiculeInit{ physx::PxTransform(physx::PxVec3(0.f, 0.f, 0.f)) },
+      positionCargoInit{ physx::PxTransform(physx::PxVec3(20.f, 0.f, 20.f)) },
+      positionGoalInit{ physx::PxTransform(physx::PxVec3(100.f, 0.f, 100.f)) },
+      dTBalls{ 1000/3 }, //3 balle par seconde
+      vitesseBall{ 20 },
+      rayonBall{ 5 },
+      minuteur{},
+      filterShader { MyCallback::MyCallback() }
+   {
+      //initPhysics(true);
+   }
 
 public:
    static Simulation& get() {
@@ -121,19 +119,28 @@ public:
       return singleton;
    }
 
-   physx::PxRigidDynamic* createBall(const physx::PxTransform& t,
-      const physx::PxReal& rayon,
-      const physx::PxVec3& velocity = physx::PxVec3(0),
-      const unsigned short indexBall = 0);
+   physx::PxRigidDynamic* createVehicule(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
+   physx::PxRigidDynamic* createCargo(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
+   physx::PxRigidDynamic* createGoal(const physx::PxTransform& t, physx::PxReal rayon, physx::PxReal hauteur);
+   //physx::PxRigidDynamic* createBall(const physx::PxTransform& t,
+      //const physx::PxReal& rayon,
+      //const physx::PxVec3& velocity = physx::PxVec3(0),
+      //const unsigned short indexBall = 0);
 public:
-   static physx::PxU32 getBallFilterGroup(const unsigned short indexBall) {
-      return (1 << indexBall);
-   }
-   static physx::PxU32 getWallFilterGroup() {
-      return FilterGroup::eWALL;
-   }
+
+   struct FilterGroup
+   {
+      enum TypeObject
+      {
+         eVEHICULE   = (1 << 0),
+         eCARGO      = (1 << 1),
+         eGOAL       = (1 << 2),
+         eBALLE      = (1 << 3)
+      };
+   };
+
 public:
-   physx::PxRigidDynamic* createWall(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
+   //physx::PxRigidDynamic* createWall(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
 
    void initPhysics(bool interactive);
 
@@ -148,6 +155,26 @@ public:
    ~Simulation() {
       cleanupPhysics(true);
    }
+
+   static void elementPhysXFoundationDeleter(physx::PxFoundation* elementPhysX) {
+      elementPhysX->release();
+   }
+   static void elementPhysXPhysicsDeleter(physx::PxPhysics* elementPhysX) {
+      elementPhysX->release();
+   }
+   static void elementPhysXDispatcherDeleter(physx::PxDefaultCpuDispatcher* elementPhysX) {
+      elementPhysX->release();
+   }
+   static void elementPhysXSceneDeleter(physx::PxScene* elementPhysX) {
+      elementPhysX->release();
+   }
+   static void elementPhysXBaseDeleter(physx::PxBase* elementPhysX) {
+      elementPhysX->release();
+   }
+   static void elementPhysXPvdDeleter(physx::PxPvd* elementPhysX) {
+      elementPhysX->release();
+   }
+
 
    // FILTERING
 
@@ -166,23 +193,26 @@ public:
 public:
    int snippetMain(int, const char*const*);
 
-   physx::PxRigidDynamic* getWall() {
-      return pWall;
+   Vehicule* getVehicule() {
+      return pVehicule.get();
    }
 
-   void getWall(physx::PxRigidDynamic* wall) {
-      pWall = wall;
-   }
-
-   short getNbBallMax() {
-      return nbBallsMax;
+   physx::PxTransform changeGoalPosition(physx::PxTransform* _positionGoal) {
+      physx::PxTransform newPositionGoal{_positionGoal->p.x + 100.f, _positionGoal->p.y, _positionGoal->p.z + 100.f };
+      *_positionGoal = newPositionGoal;
+      return newPositionGoal;
    }
 
    void contactDetected(const unsigned short indexBall) {
       listIdBallTouched.push_back(indexBall);
    }
 
-private:
-   void gestionCollision(const unsigned short indexBall);
+   void goalAtteint() {
+      goalTouch = true;
+      pGoal->changePosition();
+   }
+
+//private:
+   //void gestionCollision(const unsigned short indexBall);
 };
 #endif

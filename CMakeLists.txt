@@ -1,8 +1,6 @@
 cmake_minimum_required( VERSION 3.0 )
 project( Simulation C CXX )
 
-#add_definitions(-DDEBUG_FRAMEWORK)
-
 include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -12,8 +10,18 @@ set_property(GLOBAL PROPERTY CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY  ON)
 set_property(GLOBAL PROPERTY CMAKE_SUPPRESS_REGENERATION  ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Filters
-include( Filters.cmake )
+#Compile Option
+SET (MY_COMPILE_OPTIONS /std:c++latest -D_UNICODE -DUNICODE /MP /FR )
+
+SET (MY_RELEASE_OPTIONS ${MY_COMPILE_OPTIONS})
+SET (MY_DEBUG_OPTIONS ${MY_COMPILE_OPTIONS} -D_DEBUG /MDd)
+
+SET (SIMULATION_RELEASE_OPTIONS ${MY_RELEASE_OPTIONS})
+SET (SIMULATION_DEBUG_OPTIONS ${MY_DEBUG_OPTIONS})
+
+SET (DOSSIER_BIN_SORTIE ${CMAKE_SOURCE_DIR}/Bin)
+SET (DOSSIER_INCLUDE_SORTIE ${CMAKE_SOURCE_DIR}/Include)
+SET (DOSSIER_API_PHYSX ${DOSSIER_INCLUDE_SORTIE}/API_PhysX)
 
 SET (SIMULATION_INCLUDE_DIR
 	${CMAKE_SOURCE_DIR}/Include
@@ -32,18 +40,12 @@ SET (SIMULATION_LIB_DIR
 	${CMAKE_SOURCE_DIR}/Include/SnippetUtils/Lib
 	${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib
 	${CMAKE_SOURCE_DIR}/Include/Graphics/lib/win64/glut
-	${CMAKE_SOURCE_DIR}/Include/API_PhysX/Lib
+	${DOSSIER_API_PHYSX}/Lib
 	${CMAKE_SOURCE_DIR}/Include/PxToolkit/lib
 )
 link_directories(${SIMULATION_LIB_DIR})
 
-add_compile_options(/std:c++latest)
-add_compile_options(/MDd)
-
 #Projet Simulation
-SET( SIMULATION_BUILDFILES 
-)
-
 SET( SIMULATION_HEADERS 
 	Simulation/MyCallback.h
 	Simulation/SampleAllocator.h
@@ -54,6 +56,9 @@ SET( SIMULATION_HEADERS
 	Simulation/SnippetRender.h
 	Simulation/Incopiable.h
 	Simulation/Minuteur.h
+	Simulation/Vehicule.h
+	Simulation/Goal.h
+    Simulation/Balle.h
 )
 
 SET( SIMULATION_SRC 
@@ -66,12 +71,15 @@ SET( SIMULATION_SRC
 	Simulation/SnippetCamera.cpp
 	Simulation/SnippetRender.cpp
 	Simulation/Minuteur.cpp
+	Simulation/Vehicule.cpp
+	Simulation/Goal.cpp
+    Simulation/Balle.cpp
 
 	#Main
 	Simulation/ClassicMain.cpp
 )
 
-SET(jobfiles "${SIMULATION_SRC};${SIMULATION_BUILDFILES}")
+SET(jobfiles "${SIMULATION_SRC};${SIMULATION_HEADERS}")
 file(WRITE jobfilesSimulation.txt "${jobfiles}")
 
 add_executable(
@@ -82,12 +90,17 @@ add_executable(
 )
 
 SET( SIMULATION_TARGET_PROPERTIES 
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Bin/"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/Bin/"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/Bin/"
+	RUNTIME_OUTPUT_DIRECTORY "${DOSSIER_BIN_SORTIE}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG "${DOSSIER_BIN_SORTIE}"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${DOSSIER_BIN_SORTIE}"
 )
 
-SET( SIMULATION_TARGET_LINK_LIBRARIES 
+SET( SIMULATION_TARGET_LINK_LIBRARIES
+	glut32.lib
+)
+
+SET( SIMULATION_TARGET_LINK_LIBRARIES_DEBUG 
+	${SIMULATION_TARGET_LINK_LIBRARIES}
 	PhysX3CharacterKinematicDEBUG_x64.lib
 	PhysX3CommonDEBUG_x64.lib
 	PhysX3CookingDEBUG_x64.lib
@@ -96,7 +109,6 @@ SET( SIMULATION_TARGET_LINK_LIBRARIES
 	PhysX3VehicleDEBUG.lib
 	SceneQueryDEBUG.lib
 	SimulationControllerDEBUG.lib
-	glut32.lib
 	PsFastXmlDEBUG_x64.lib
 	PxFoundationDEBUG_x64.lib
 	PxPvdSDKDEBUG_x64.lib
@@ -106,10 +118,36 @@ SET( SIMULATION_TARGET_LINK_LIBRARIES
 	PxToolkitDEBUG.lib
 )
 
+SET( SIMULATION_TARGET_LINK_LIBRARIES_RELEASE 
+	${SIMULATION_TARGET_LINK_LIBRARIES}
+	PhysX3CharacterKinematic_x64.lib
+	PhysX3Common_x64.lib
+	PhysX3Cooking_x64.lib
+	PhysX3_x64.lib
+	PhysX3Extensions.lib
+	PhysX3Vehicle.lib
+	SceneQuery.lib
+	SimulationController.lib
+	PsFastXml_x64.lib
+	PxFoundation_x64.lib
+	PxPvdSDK_x64.lib
+	PxTask_x64.lib
+	SnippetUtils.lib
+	SampleBase.lib
+	PxToolkit.lib
+)
+
 set_target_properties(Simulation  PROPERTIES ${SIMULATION_TARGET_PROPERTIES})
 
 target_link_libraries (Simulation ${SIMULATION_TARGET_LINK_LIBRARIES})
 
+target_link_libraries(Simulation "$<$<CONFIG:RELEASE>:${SIMULATION_TARGET_LINK_LIBRARIES_RELEASE}>")
+target_link_libraries(Simulation "$<$<CONFIG:DEBUG>:${SIMULATION_TARGET_LINK_LIBRARIES_DEBUG}>")
 
+target_compile_options(Simulation PUBLIC "$<$<CONFIG:RELEASE>:${SIMULATION_RELEASE_OPTIONS}>")
+target_compile_options(Simulation PUBLIC "$<$<CONFIG:DEBUG>:${SIMULATION_DEBUG_OPTIONS}>")
+
+# Filters
+include( Filters.cmake )
 CREATE_VISUAL_STUDIO_FILTERS(SIMULATION)
 
