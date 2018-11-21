@@ -38,7 +38,7 @@ SET (SIMULATION_LIB_DIR
 link_directories(${SIMULATION_LIB_DIR})
 
 add_compile_options(/std:c++latest)
-add_compile_options(/MTd)
+add_compile_options(/MDd)
 
 #Projet Simulation
 SET( SIMULATION_BUILDFILES 
