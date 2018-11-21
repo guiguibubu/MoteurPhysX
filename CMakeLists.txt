@@ -32,7 +32,7 @@ SET (SIMULATION_LIB_DIR
 	${CMAKE_SOURCE_DIR}/Include/SnippetUtils/Lib
 	${CMAKE_SOURCE_DIR}/Include/SnippetRender/Lib
 	${CMAKE_SOURCE_DIR}/Include/Graphics/lib/win64/glut
-	${CMAKE_SOURCE_DIR}/API_PhysX/Lib
+	${CMAKE_SOURCE_DIR}/Include/API_PhysX/Lib
 	${CMAKE_SOURCE_DIR}/Include/PxToolkit/lib
 )
 link_directories(${SIMULATION_LIB_DIR})
