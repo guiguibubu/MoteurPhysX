@@ -25,10 +25,11 @@ private:
    duree_t dT;
    bool finished;
    bool started;
+   bool looped;
 
 public:
-   Minuteur() : Minuteur(duree_t{}) {}
-   Minuteur(duree_t _timeToReech) : timeToReech{ _timeToReech }, dT{}, finished{}, oldTime{}, started{} {}
+   Minuteur(bool _looped = false) : Minuteur(duree_t{}, _looped) {}
+   Minuteur(duree_t _timeToReech, bool _looped = false) : timeToReech{ _timeToReech }, dT{}, finished{}, oldTime{}, started{}, looped{_looped} {}
    ~Minuteur() = default;
 
    duree_t getTempsRestant();

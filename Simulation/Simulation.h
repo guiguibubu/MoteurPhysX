@@ -107,7 +107,7 @@ class Simulation : public Incopiable, SimulationRender {
       dTBalls{ 1000/3 }, //3 balle par seconde
       vitesseBall{ 20 },
       rayonBall{ 5 },
-      minuteur{},
+      minuteur{true},
       filterShader { MyCallback::MyCallback() }
    {
       //initPhysics(true);
@@ -212,6 +212,7 @@ public:
       pGoal->changePosition();
    }
 
+   physx::PxRigidDynamic* createBall(const physx::PxTransform& t, const physx::PxReal& rayon, const physx::PxVec3& velocity);
 //private:
    //void gestionCollision(const unsigned short indexBall);
 };

@@ -8,7 +8,8 @@ class Balle {
 
    physx::PxReal rayon;
    physx::PxVec3 vitesse;
-   std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> rigidBody;
+   //std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> rigidBody;
+   physx::PxRigidDynamic* rigidBody;
    physx::PxPhysics* gPhysics;
    physx::PxMaterial* gMaterial;
 
@@ -21,14 +22,19 @@ public:
       , rayon { _rayon }
       , gPhysics{ _gPhysics }
       , gMaterial{ _gMaterial }
-      , rigidBody { std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>>(PxCreateDynamic(*_gPhysics, t, physx::PxSphereGeometry(rayon), *_gMaterial, 10.0f), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); }) } {
-
+      //, rigidBody { std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>>(_gPhysics->createRigidDynamic(t), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); }) } 
+      , rigidBody{ _gPhysics->createRigidDynamic(t) }
+   {
+      std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>> shape = std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>>(gPhysics->createShape(physx::PxSphereGeometry(rayon), *gMaterial, false, physx::PxShapeFlag::eSIMULATION_SHAPE), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); });
+      rigidBody->attachShape(*shape);
+      physx::PxRigidBodyExt::updateMassAndInertia(*rigidBody, 10.0f);
       rigidBody->setAngularDamping(0.5f);
-      rigidBody->setLinearVelocity(_vitesse);
+      rigidBody->setLinearVelocity(vitesse);
+      rigidBody->setSleepThreshold(physx::PxReal{ 0 });
    }
 
    physx::PxRigidDynamic* getRigidBody() {
-      return rigidBody.get();
+      return rigidBody;
    }
 
 };

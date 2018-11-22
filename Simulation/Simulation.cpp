@@ -47,6 +47,16 @@
 #include <sstream>
 #include <chrono>
 
+physx::PxRigidDynamic* Simulation::createBall(const physx::PxTransform& t, const physx::PxReal& rayon, const physx::PxVec3& velocity)
+{
+   physx::PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, physx::PxSphereGeometry(rayon), *gMaterial, 10.0f);
+   dynamic->setAngularDamping(0.5f);
+   dynamic->setLinearVelocity(velocity);
+   //gScene->addActor(*dynamic);
+   return dynamic;
+}
+
+
 physx::PxRigidDynamic* Simulation::createVehicule(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ) {
 
    std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>> shape = std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>>(
@@ -146,7 +156,9 @@ void Simulation::stepPhysics(bool interactive)
       if (!minuteur.isConfigured()) {
          minuteur.setDecompte(dTBalls);
          minuteur.start();
+         
          auto balle = pVehicule->tir(rayonBall, vitesseBall);
+         gScene->addActor(*balle->getRigidBody());
 
          physx::PxU32 filterMask = 0;
          filterMask |= FilterGroup::eBALLE;
@@ -154,11 +166,21 @@ void Simulation::stepPhysics(bool interactive)
          filterMask |= FilterGroup::eGOAL;
          filterMask |= FilterGroup::eCARGO;
          setupFiltering(balle->getRigidBody(), FilterGroup::eBALLE, filterMask);
-
       }
       else {
          minuteur.refresh();
          if (minuteur.isFinished()) {
+            
+            auto balle = pVehicule->tir(rayonBall, vitesseBall);
+            gScene->addActor(*balle->getRigidBody());
+            physx::PxU32 filterMask = 0;
+            filterMask |= FilterGroup::eBALLE;
+            filterMask |= FilterGroup::eVEHICULE;
+            filterMask |= FilterGroup::eGOAL;
+            filterMask |= FilterGroup::eCARGO;
+            setupFiltering(balle->getRigidBody(), FilterGroup::eBALLE, filterMask);
+
+            minuteur.start();
          }
       }
       // on desamorce la demande de tir
