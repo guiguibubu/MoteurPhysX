@@ -34,6 +34,13 @@
 
 using namespace physx;
 
+void Camera::zoomUp() {
+   mEye += mDir * 2.0f*1.0f;
+}
+void Camera::zoomDown() {
+   mEye -= mDir * 2.0f*1.0f;
+}
+
 Camera::Camera(const PxVec3& eye, const PxVec3& dir)
 {
 	mEye = eye;
@@ -45,7 +52,8 @@ Camera::Camera(const PxVec3& eye, const PxVec3& dir)
 void Camera::handleMouse(int button, int state, int x, int y)
 {
 	PX_UNUSED(state);
-	PX_UNUSED(button);
+    PX_UNUSED(button);
+    
 	mMouseX = x;
 	mMouseY = y;
 }

@@ -5,7 +5,10 @@
 #include <functional>
 
 class Balle {
-
+public:
+   static const unsigned short VITESSE_BALLE;
+   static const physx::PxReal RAYON_BALLE;
+private:
    physx::PxReal rayon;
    physx::PxVec3 vitesse;
    //std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> rigidBody;
@@ -21,15 +24,16 @@ public:
       : vitesse{ _vitesse }
       , rayon { _rayon }
       , gPhysics{ _gPhysics }
-      , gMaterial{ _gMaterial }
+      , gMaterial{ _gPhysics->createMaterial(0.f, 0.f, 0.f) }
       //, rigidBody { std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>>(_gPhysics->createRigidDynamic(t), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); }) } 
       , rigidBody{ _gPhysics->createRigidDynamic(t) }
    {
-      std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>> shape = std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>>(gPhysics->createShape(physx::PxSphereGeometry(rayon), *gMaterial, false, physx::PxShapeFlag::eSIMULATION_SHAPE), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); });
+      std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>> shape = std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>>(gPhysics->createShape(physx::PxSphereGeometry(rayon), *gMaterial, true, physx::PxShapeFlag::eSIMULATION_SHAPE), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); });
       rigidBody->attachShape(*shape);
       physx::PxRigidBodyExt::updateMassAndInertia(*rigidBody, 10.0f);
       rigidBody->setAngularDamping(0.5f);
       rigidBody->setLinearVelocity(vitesse);
+      rigidBody->setLinearDamping(0.f);
       rigidBody->setSleepThreshold(physx::PxReal{ 0 });
    }
 

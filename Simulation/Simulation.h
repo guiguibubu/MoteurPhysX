@@ -78,9 +78,9 @@ class Simulation : public Incopiable, SimulationRender {
 
    bool sceneCleanUp = false;
 
-   unsigned short dTBalls;
-   signed short vitesseBall;
-   physx::PxReal rayonBall;
+   //unsigned short dTBalls;
+   //unsigned short vitesseBall;
+   //physx::PxReal rayonBall;
 
    Minuteur minuteur;
 
@@ -90,6 +90,7 @@ class Simulation : public Incopiable, SimulationRender {
    bool goalTouch = false;
    bool tirDemande = false;
 
+   std::unique_ptr<physx::PxRigidStatic, std::function<void(physx::PxBase*)>> pSol;
    std::unique_ptr<Vehicule> pVehicule;
    std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> pCargo;
    std::unique_ptr<Goal> pGoal;
@@ -101,12 +102,9 @@ class Simulation : public Incopiable, SimulationRender {
       gAllocator{},
       gErrorCallback{},
       stackZ{ 10.0f },
-      positionVehiculeInit{ physx::PxTransform(physx::PxVec3(0.f, 0.f, 0.f)) },
-      positionCargoInit{ physx::PxTransform(physx::PxVec3(20.f, 0.f, 20.f)) },
-      positionGoalInit{ physx::PxTransform(physx::PxVec3(100.f, 0.f, 100.f)) },
-      dTBalls{ 1000/3 }, //3 balle par seconde
-      vitesseBall{ 20 },
-      rayonBall{ 5 },
+      positionVehiculeInit{ physx::PxTransform(physx::PxVec3(0.f, 5.f, 0.f)) },
+      positionCargoInit{ physx::PxTransform(physx::PxVec3(20.f, 5.f, 0.f)) },
+      positionGoalInit{ physx::PxTransform(physx::PxVec3(100.f, 50.f, 0.f)) },
       minuteur{true},
       filterShader { MyCallback::MyCallback() }
    {
@@ -119,23 +117,23 @@ public:
       return singleton;
    }
 
+   physx::PxRigidStatic* createSol();
    physx::PxRigidDynamic* createVehicule(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
    physx::PxRigidDynamic* createCargo(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
    physx::PxRigidDynamic* createGoal(const physx::PxTransform& t, physx::PxReal rayon, physx::PxReal hauteur);
-   //physx::PxRigidDynamic* createBall(const physx::PxTransform& t,
-      //const physx::PxReal& rayon,
-      //const physx::PxVec3& velocity = physx::PxVec3(0),
-      //const unsigned short indexBall = 0);
+   physx::PxRigidDynamic* tirBalle(const Vehicule& vehicule);
+
 public:
 
    struct FilterGroup
    {
       enum TypeObject
       {
-         eVEHICULE   = (1 << 0),
-         eCARGO      = (1 << 1),
-         eGOAL       = (1 << 2),
-         eBALLE      = (1 << 3)
+         eSOL        = (1 << 0),
+         eVEHICULE   = (1 << 1),
+         eCARGO      = (1 << 2),
+         eGOAL       = (1 << 3),
+         eBALLE      = (1 << 4)
       };
    };
 

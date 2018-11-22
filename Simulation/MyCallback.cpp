@@ -10,17 +10,41 @@ void MyCallback::onContactModify(physx::PxContactModifyPair* const pairs, physx:
    std::cout << "onContactModify" << std::endl;
    for (physx::PxU32 i = 0; i < count; i++)
    {
-      auto shape0Id = pairs->shape[0]->getSimulationFilterData().word0;
-      auto shape1Id = pairs->shape[1]->getSimulationFilterData().word0;
+      auto pair = pairs[i];
 
-      if ((shape0Id == Simulation::FilterGroup::eGOAL) || (shape1Id == Simulation::FilterGroup::eGOAL))
+      if (pairContient(pair, Simulation::FilterGroup::eGOAL))
       {
-         auto filterData = (shape0Id == Simulation::FilterGroup::eGOAL) ? pairs->shape[1]->getSimulationFilterData() : pairs->shape[0]->getSimulationFilterData();
-         auto IdOtherObject = filterData.word0;
+         auto IdOtherObject = getFlag(getOtherFilterData(pair, Simulation::FilterGroup::eGOAL));
 
          switch (IdOtherObject) {
          case Simulation::FilterGroup::eCARGO: Simulation::get().goalAtteint();  break;
-         default: pairs->contacts.ignore(0); break;
+         default: ignoreContact(pair); break;
+         }
+
+         break;
+      }
+      else if (pairContient(pair, Simulation::FilterGroup::eVEHICULE)) {
+
+         auto filterData = getOtherFilterData(pair, Simulation::FilterGroup::eVEHICULE);
+         auto IdOtherObject = getFlag(filterData);
+
+         switch (IdOtherObject) {
+         case Simulation::FilterGroup::eBALLE: pairs->contacts.ignore(0);  break;
+         default: ignoreContact(pair); break;
+         }
+
+         break;
+      }
+      else if (pairContient(pair, Simulation::FilterGroup::eBALLE)) {
+
+         auto filterData = getOtherFilterData(pair, Simulation::FilterGroup::eBALLE);
+         auto IdOtherObject = getFlag(filterData);
+
+         switch (IdOtherObject) {
+         case Simulation::FilterGroup::eBALLE: ignoreContact(pair); break;
+         case Simulation::FilterGroup::eSOL: break;
+         case Simulation::FilterGroup::eCARGO: break;
+         default: ignoreContact(pair); break;
          }
 
          break;
@@ -30,27 +54,35 @@ void MyCallback::onContactModify(physx::PxContactModifyPair* const pairs, physx:
 
 void MyCallback::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) {
    std::cout << "onContact" << std::endl;
-   for (physx::PxU32 i = 0; i < nbPairs; i++)
-   {
-      //const physx::PxContactPair& cp = pairs[i];
+}
 
-      //if (cp.events & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
-      //{
-      //   if ((pairHeader.actors[0] == Simulation::get().getWall()) || (pairHeader.actors[1] == Simulation::get().setWall()))
-      //   {
-      //      auto filterData = (Simulation::get().setWall() == pairHeader.actors[0]) ? pairs->shapes[1]->getSimulationFilterData() : pairs->shapes[0]->getSimulationFilterData();
-      //      auto IdOtherObject = filterData.word0;
+bool MyCallback::pairContient(const physx::PxContactModifyPair& pair, const physx::PxU32& flag) {
+   return (getFlag(pair, 0) == flag) || (getFlag(pair, 1) == flag);
+}
 
-      //      short index = 0;
-      //      bool found = false;
-      //      while (index < Simulation::get().getNbBallMax() && !found) {
-      //         found = Simulation::getBallFilterGroup(++index) == IdOtherObject;
-      //         i++;
-      //      }
-      //      Simulation::get().contactDetected(index);
-      //      break;
-      //   }
-      //}
+physx::PxU32 MyCallback::getFlag(const physx::PxContactModifyPair& pair, const short& index) {
+   return getFlag(getFilterData(pair, index));
+}
+
+physx::PxU32 MyCallback::getFlag(const physx::PxFilterData& filterData) {
+   return filterData.word0;
+}
+
+physx::PxFilterData MyCallback::getFilterData(const physx::PxContactModifyPair& pair, const short& index) {
+   return pair.shape[index]->getSimulationFilterData();
+}
+
+physx::PxFilterData MyCallback::getOtherFilterData(const physx::PxContactModifyPair& pair, const physx::PxU32& flag) {
+   physx::PxFilterData otherFilterData = physx::PxFilterData();
+   if (pairContient(pair, flag)) {
+      otherFilterData = (getFlag(pair, 0) == flag) ? getFilterData(pair, 1) : getFilterData(pair, 0);
+   }
+   return otherFilterData;
+}
+
+void MyCallback::ignoreContact(physx::PxContactModifyPair& pair) {
+   for (int i = 0; i < pair.contacts.size(); i++) {
+      pair.contacts.ignore(i);
    }
 }
 

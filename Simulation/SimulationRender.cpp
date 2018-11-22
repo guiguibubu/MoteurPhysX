@@ -54,7 +54,7 @@
          if (key == 27)
             exit(0);
 
-         if (!SimulationRender::getCamera()->handleKey(key, x, y))
+         if (!SimulationRender::getCamera()->handleKey(key, x, y, 2.f))
             keyPress(key, SimulationRender::getCamera()->getTransform());
       }
 
@@ -94,7 +94,7 @@
 
       void SimulationRender::renderLoop()
       {
-         SimulationRender::setCamera(new Camera(physx::PxVec3(50.0f, 50.0f, 50.0f), physx::PxVec3(-0.5f, -0.5f, -0.5f)));
+         SimulationRender::setCamera(new Camera(physx::PxVec3(500.0f, 500.0f, 500.0f), physx::PxVec3(-0.5f, -0.5f, -0.5f)));
 
          Render::setupDefaultWindow("PhysX Exercice 2");
          Render::setupDefaultRenderState();

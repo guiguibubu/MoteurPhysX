@@ -72,6 +72,8 @@ public:
 
    static void mouseCallback(int button, int state, int x, int y);
 
+   static void mouseWheelCallback(int button, int state, int x, int y);
+
    static void idleCallback();
 
    static void renderCallback();

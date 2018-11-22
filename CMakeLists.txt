@@ -59,6 +59,7 @@ SET( SIMULATION_HEADERS
 	Simulation/Vehicule.h
 	Simulation/Goal.h
     Simulation/Balle.h
+    Simulation/Bot.h
 )
 
 SET( SIMULATION_SRC 
@@ -74,6 +75,7 @@ SET( SIMULATION_SRC
 	Simulation/Vehicule.cpp
 	Simulation/Goal.cpp
     Simulation/Balle.cpp
+    Simulation/Bot.cpp
 
 	#Main
 	Simulation/ClassicMain.cpp
