@@ -7,6 +7,7 @@
 
 class Vehicule {
 public:
+   static const physx::PxReal DIMENSION_COTE;
    static const unsigned short CADENCE_TIR;
    static const physx::PxReal VITESSE;
 
@@ -27,7 +28,7 @@ public:
      
       rigidBody->attachShape(*shape);
       physx::PxRigidBodyExt::updateMassAndInertia(*rigidBody, 10.0f);
-      rigidBody->setRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
+      rigidBody->setRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
       rigidBody->setSleepThreshold(physx::PxReal{ 0 });
   
    }

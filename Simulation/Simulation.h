@@ -41,11 +41,12 @@
 #include "commonImport.h"
 #include "Incopiable.h"
 #include "SimulationRender.h"
-#include "MyCallback.h"
+#include "FilterShader.h"
 #include "Minuteur.h"
 #include "Balle.h"
 #include "Vehicule.h"
 #include "Goal.h"
+#include "Bot.h"
 
 #include <chrono>
 #include <vector>
@@ -56,7 +57,9 @@ class Vehicule;
 class Goal;
 
 class Simulation : public Incopiable, SimulationRender {
-
+public:
+   static const physx::PxReal FREQUENCE_SIMULATION;
+private:
    physx::PxDefaultAllocator		gAllocator;
    physx::PxDefaultErrorCallback	gErrorCallback;
 
@@ -94,8 +97,9 @@ class Simulation : public Incopiable, SimulationRender {
    std::unique_ptr<Vehicule> pVehicule;
    std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> pCargo;
    std::unique_ptr<Goal> pGoal;
+   std::unique_ptr<Bot> pBot;
 
-   MyCallback filterShader;
+   FilterShader filterShader;
 
    // SINGLETON
    Simulation() :
@@ -105,8 +109,8 @@ class Simulation : public Incopiable, SimulationRender {
       positionVehiculeInit{ physx::PxTransform(physx::PxVec3(0.f, 5.f, 0.f)) },
       positionCargoInit{ physx::PxTransform(physx::PxVec3(20.f, 5.f, 0.f)) },
       positionGoalInit{ physx::PxTransform(physx::PxVec3(100.f, 50.f, 0.f)) },
-      minuteur{true},
-      filterShader { MyCallback::MyCallback() }
+      minuteur{ true },
+      filterShader{ FilterShader::FilterShader() }
    {
       //initPhysics(true);
    }
@@ -121,20 +125,17 @@ public:
    physx::PxRigidDynamic* createVehicule(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
    physx::PxRigidDynamic* createCargo(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
    physx::PxRigidDynamic* createGoal(const physx::PxTransform& t, physx::PxReal rayon, physx::PxReal hauteur);
-   physx::PxRigidDynamic* tirBalle(const Vehicule& vehicule);
+   physx::PxRigidDynamic* tirBalle(const Vehicule& vehicule, const physx::PxVec3& directionTir = {1,0,0});
 
 public:
 
-   struct FilterGroup
+   enum FilterGroup
    {
-      enum TypeObject
-      {
-         eSOL        = (1 << 0),
-         eVEHICULE   = (1 << 1),
-         eCARGO      = (1 << 2),
-         eGOAL       = (1 << 3),
-         eBALLE      = (1 << 4)
-      };
+      eSOL = (1 << 0),
+      eVEHICULE = (1 << 1),
+      eCARGO = (1 << 2),
+      eGOAL = (1 << 3),
+      eBALLE = (1 << 4)
    };
 
 public:
@@ -176,16 +177,7 @@ public:
 
    // FILTERING
 
-   void setupFiltering(physx::PxRigidActor* actor, physx::PxU32 filterGroup, physx::PxU32 filterMask);
-
-   static physx::PxFilterFlags myFilterShader(
-      physx::PxFilterObjectAttributes attributes0,
-      physx::PxFilterData filterData0,
-      physx::PxFilterObjectAttributes attributes1,
-      physx::PxFilterData filterData1,
-      physx::PxPairFlags& pairFlags,
-      const void* constantBlock,
-      physx::PxU32 constantBlockSize);
+   
 
    //MAIN
 public:
@@ -196,7 +188,7 @@ public:
    }
 
    physx::PxTransform changeGoalPosition(physx::PxTransform* _positionGoal) {
-      physx::PxTransform newPositionGoal{_positionGoal->p.x + 100.f, _positionGoal->p.y, _positionGoal->p.z + 100.f };
+      physx::PxTransform newPositionGoal{ _positionGoal->p.x + 100.f, _positionGoal->p.y, _positionGoal->p.z + 100.f };
       *_positionGoal = newPositionGoal;
       return newPositionGoal;
    }
@@ -211,7 +203,7 @@ public:
    }
 
    physx::PxRigidDynamic* createBall(const physx::PxTransform& t, const physx::PxReal& rayon, const physx::PxVec3& velocity);
-//private:
-   //void gestionCollision(const unsigned short indexBall);
+   //private:
+      //void gestionCollision(const unsigned short indexBall);
 };
 #endif

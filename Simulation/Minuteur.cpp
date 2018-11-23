@@ -42,11 +42,16 @@ void Minuteur::start() {
 }
 
 void Minuteur::refresh() {
-   if (!finished && started) {
-      dT = dureeMilliseconds(oldTime, now());
-      finished = dT >= timeToReech;
-      started = !finished;
-      timeToReech = (finished && !looped) ? 0 : timeToReech;
+   if (started) {
+      if (!finished) {
+         dT = dureeMilliseconds(oldTime, now());
+         finished = dT >= timeToReech;
+         started = !finished;
+         timeToReech = (finished && !looped) ? 0 : timeToReech;
+      }
+   }
+   else {
+      start();
    }
 }
 

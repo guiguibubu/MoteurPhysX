@@ -47,7 +47,7 @@ link_directories(${SIMULATION_LIB_DIR})
 
 #Projet Simulation
 SET( SIMULATION_HEADERS 
-	Simulation/MyCallback.h
+	Simulation/FilterShader.h
 	Simulation/SampleAllocator.h
 	Simulation/Simulation.h
 	Simulation/SimulationRender.h
@@ -67,7 +67,7 @@ SET( SIMULATION_SRC
 	#Framework
 	Simulation/Simulation.cpp
 	Simulation/SimulationRender.cpp
-	Simulation/MyCallback.cpp
+	Simulation/FilterShader.cpp
 	Simulation/SampleAllocator.cpp
 	Simulation/SnippetCamera.cpp
 	Simulation/SnippetRender.cpp

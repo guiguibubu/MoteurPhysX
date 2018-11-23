@@ -47,11 +47,13 @@
 #include <sstream>
 #include <chrono>
 
+const physx::PxReal Simulation::FREQUENCE_SIMULATION = 1/60.f;
+
 physx::PxRigidStatic* Simulation::createSol() {
    
    
 
-   physx::PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, physx::PxPlane(0, 1, 0, 0), *gPhysics->createMaterial(0.f, 0.f, 0.f));
+   physx::PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, physx::PxPlane(0, 1, 0, 0), *gPhysics->createMaterial(0.5f, 0.5f, 0.1f));
    groundPlane->setActorFlags(physx::PxActorFlag::eVISUALIZATION);
    
    pSol = std::unique_ptr<physx::PxRigidStatic, std::function<void(physx::PxBase*)>>(groundPlane, Simulation::elementPhysXBaseDeleter);
@@ -63,7 +65,7 @@ physx::PxRigidStatic* Simulation::createSol() {
    filterMask |= FilterGroup::eVEHICULE;
    filterMask |= FilterGroup::eGOAL;
    filterMask |= FilterGroup::eCARGO;
-   setupFiltering(pSol.get(), FilterGroup::eSOL, filterMask);
+   FilterShader::setupFiltering(pSol.get(), FilterGroup::eSOL, filterMask);
    
    
 
@@ -94,7 +96,7 @@ physx::PxRigidDynamic* Simulation::createVehicule(const physx::PxTransform& t, p
    physx::PxU32 filterMask = 0;
    filterMask |= FilterGroup::eBALLE;
    filterMask |= FilterGroup::eCARGO;
-   setupFiltering(pVehicule->getRigidBody(), FilterGroup::eVEHICULE, filterMask);
+   FilterShader::setupFiltering(pVehicule->getRigidBody(), FilterGroup::eVEHICULE, filterMask);
 
    return pVehicule->getRigidBody();
 }
@@ -106,13 +108,14 @@ physx::PxRigidDynamic* Simulation::createCargo(const physx::PxTransform& t, phys
    pCargo->setRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
    gScene->addActor(*pCargo);
    pCargo->setSleepThreshold(physx::PxReal{ 0 });
+   pCargo->setLinearDamping(0.75f);
    shape->release();
 
    physx::PxU32 filterMask = 0;
    filterMask |= FilterGroup::eBALLE;
    filterMask |= FilterGroup::eVEHICULE;
    filterMask |= FilterGroup::eGOAL;
-   setupFiltering(pCargo.get(), FilterGroup::eCARGO, filterMask);
+   FilterShader::setupFiltering(pCargo.get(), FilterGroup::eCARGO, filterMask);
 
    return pCargo.get();
 }
@@ -125,14 +128,14 @@ physx::PxRigidDynamic* Simulation::createGoal(const physx::PxTransform& t, physx
 
    physx::PxU32 filterMask = 0;
    filterMask |= FilterGroup::eCARGO;
-   setupFiltering(pGoal->getRigidBody(), FilterGroup::eGOAL, filterMask);
+   FilterShader::setupFiltering(pGoal->getRigidBody(), FilterGroup::eGOAL, filterMask);
 
    return pGoal->getRigidBody();
 }
 
-physx::PxRigidDynamic* Simulation::tirBalle(const Vehicule& vehicule) {
+physx::PxRigidDynamic* Simulation::tirBalle(const Vehicule& vehicule, const physx::PxVec3& directionTir) {
 
-   auto balle = pVehicule->tir(physx::PxVec3(Balle::VITESSE_BALLE, 0.f, 0.f));
+   auto balle = pVehicule->tir(directionTir.getNormalized() * Balle::VITESSE_BALLE);
    
    gScene->addActor(*balle->getRigidBody());
    physx::PxU32 filterMask = 0;
@@ -140,7 +143,7 @@ physx::PxRigidDynamic* Simulation::tirBalle(const Vehicule& vehicule) {
    filterMask |= FilterGroup::eVEHICULE;
    filterMask |= FilterGroup::eGOAL;
    filterMask |= FilterGroup::eCARGO;
-   setupFiltering(balle->getRigidBody(), FilterGroup::eBALLE, filterMask);
+   FilterShader::setupFiltering(balle->getRigidBody(), FilterGroup::eBALLE, filterMask);
    
    auto rigidBody = balle->getRigidBody();
    listBall.push_back(std::move(balle));
@@ -165,7 +168,7 @@ void Simulation::initPhysics(bool interactive)
    sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
    gDispatcher = std::unique_ptr<physx::PxDefaultCpuDispatcher, std::function<void(physx::PxDefaultCpuDispatcher*)>>(physx::PxDefaultCpuDispatcherCreate(2), Simulation::elementPhysXDispatcherDeleter);
    sceneDesc.cpuDispatcher = gDispatcher.get();
-   sceneDesc.filterShader = myFilterShader;
+   sceneDesc.filterShader = FilterShader::filterCallback;
    gScene = std::unique_ptr<physx::PxScene, std::function<void(physx::PxScene*)>>(gPhysics->createScene(sceneDesc), Simulation::elementPhysXSceneDeleter);
 
    gScene->setVisualizationParameter(physx::PxVisualizationParameter::eSCALE, 1.0f);
@@ -181,9 +184,10 @@ void Simulation::initPhysics(bool interactive)
 
    
    createSol();
-   createVehicule(positionVehiculeInit, 5.0f, 5.0f, 5.0f);
-   createCargo(positionCargoInit, 5.0f, 5.0f, 5.0f);
+   createVehicule(positionVehiculeInit, Vehicule::DIMENSION_COTE/2.f, Vehicule::DIMENSION_COTE / 2.f, Vehicule::DIMENSION_COTE / 2.f);
+   createCargo(positionCargoInit, Vehicule::DIMENSION_COTE / 2.f, Vehicule::DIMENSION_COTE / 2.f, Vehicule::DIMENSION_COTE / 2.f);
    createGoal(positionGoalInit, 50.f,50.f);
+   pBot = std::make_unique<Bot>(pGoal.get(), pVehicule.get(), pCargo.get(), gScene.get());
 
    gScene->setContactModifyCallback(&filterShader);
    gScene->setSimulationEventCallback(&filterShader);
@@ -193,32 +197,33 @@ void Simulation::initPhysics(bool interactive)
 void Simulation::stepPhysics(bool interactive)
 {
    PX_UNUSED(interactive);
-   if (tirDemande) {
-      if (!minuteur.isConfigured()) {
-         minuteur.setDecompte(Vehicule::CADENCE_TIR);
-         minuteur.start();
-         
-         tirBalle(*pVehicule);
+   //if (tirDemande) {
+   //   if (!minuteur.isConfigured()) {
+   //      minuteur.setDecompte(Vehicule::CADENCE_TIR);
+   //      minuteur.start();
+   //      
+   //      tirBalle(*pVehicule);
 
-      }
-      else {
-         minuteur.refresh();
-         if (minuteur.isFinished()) {
-            
-            tirBalle(*pVehicule);
+   //   }
+   //   else {
+   //      minuteur.refresh();
+   //      if (minuteur.isFinished()) {
+   //         
+   //         tirBalle(*pVehicule);
 
-            minuteur.start();
-         }
-      }
-      // on desamorce la demande de tir
-      tirDemande = false;
-   }
-   //Quand la derniere balle a touchee, on eteint la simulation au bout de 5 secondes
-   if (goalTouch) {
-      changeGoalPosition(&positionGoalInit);
-   }
+   //         minuteur.start();
+   //      }
+   //   }
+   //   // on desamorce la demande de tir
+   //   tirDemande = false;
+   //}
+   ////Quand la derniere balle a touchee, on eteint la simulation au bout de 5 secondes
+   //if (goalTouch) {
+   //   changeGoalPosition(&positionGoalInit);
+   //}
 
-   gScene->simulate(1.0f / 60.0f);
+   pBot->updateState();
+   gScene->simulate(FREQUENCE_SIMULATION);
    gScene->fetchResults(true);
 }
 
@@ -265,52 +270,6 @@ int Simulation::snippetMain(int, const char*const*)
 }
 // FILTERING
 
-void Simulation::setupFiltering(physx::PxRigidActor* actor, physx::PxU32 filterGroup, physx::PxU32 filterMask)
-{
-   physx::PxFilterData filterData;
-   filterData.word0 = filterGroup; // word0 = own ID
-   filterData.word1 = filterMask;  // word1 = ID mask to filter pairs that trigger a
-                                   // contact callback;
-   const physx::PxU32 numShapes = actor->getNbShapes();
-   physx::PxShape** shapes = (physx::PxShape**)SAMPLE_ALLOC(sizeof(physx::PxShape*)*numShapes);
-   actor->getShapes(shapes, numShapes);
-   for (physx::PxU32 i = 0; i < numShapes; i++)
-   {
-      physx::PxShape* shape = shapes[i];
-      shape->setSimulationFilterData(filterData);
-   }
-   SAMPLE_FREE(shapes);
-}
-
-physx::PxFilterFlags Simulation::myFilterShader(
-   physx::PxFilterObjectAttributes attributes0,
-   physx::PxFilterData filterData0,
-   physx::PxFilterObjectAttributes attributes1,
-   physx::PxFilterData filterData1,
-   physx::PxPairFlags& pairFlags,
-   const void* constantBlock,
-   physx::PxU32 constantBlockSize)
-{
-   // let triggers through
-   if (physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
-   {
-      pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;
-      return physx::PxFilterFlag::eDEFAULT;
-   }
-   // generate contacts for all that were not filtered above
-   pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
-   // trigger the contact callback for pairs (A,B) where
-   // the filtermask of A contains the ID of B and vice versa.
-   if(filterData0.word0 == Simulation::FilterGroup::eBALLE && filterData1.word0 != Simulation::FilterGroup::eCARGO && filterData1.word0 != Simulation::FilterGroup::eSOL)
-      return physx::PxFilterFlag::eSUPPRESS;
-   if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
-      pairFlags |= physx::PxPairFlag::eMODIFY_CONTACTS;
-   return physx::PxFilterFlag::eDEFAULT;
-}
-
-
-
-
 // EXTERN FONCTION
 
 void initPhysics(bool interactive) {
@@ -325,23 +284,3 @@ void cleanupPhysics(bool interactive) {
 void keyPress(unsigned char key, physx::PxTransform& camera) {
    Simulation::get().keyPress(key, camera);
 }
-
-/*
-// GESTION COLLISION
-void Simulation::gestionCollision(const unsigned short indexBall) {
-   physx::PxRigidDynamic* ball = listBall[indexBall - 1];
-   switch (indexBall) {
-   case 1: break;
-   case 2: break;
-   case 3: ball->setLinearVelocity(physx::PxVec3(0.f, 50.f, 0.f)); break;
-   case 4:
-      if (ball->getLinearVelocity().magnitude() != 0.5f*vitesseBall) {
-         ball->setLinearVelocity(0.5f*ball->getLinearVelocity());
-         lastBallTouch = true;
-      }
-      break;
-   default: break;
-   }
-
-}
-*/
