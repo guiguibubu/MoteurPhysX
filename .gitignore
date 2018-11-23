@@ -1,0 +1,15 @@
+*.exe
+CMakeCache.txt
+cmake_install.cmake
+*.vcxproj
+*.vcxproj.*
+*.sln
+.vs/
+jobfiles*.txt
+CMakeFiles/
+build-solution-x64/
+Bin/
+*.ilk
+*.pdb
+*.tmp
+*.bsc
