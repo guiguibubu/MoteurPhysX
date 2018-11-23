@@ -50,6 +50,7 @@
 
 #include <chrono>
 #include <vector>
+#include <deque>
 #include <map>
 
 class Balle;
@@ -81,13 +82,9 @@ private:
 
    bool sceneCleanUp = false;
 
-   //unsigned short dTBalls;
-   //unsigned short vitesseBall;
-   //physx::PxReal rayonBall;
-
    Minuteur minuteur;
 
-   std::vector<std::unique_ptr<Balle>> listBall;
+   std::deque<std::unique_ptr<Balle>> listBall;
    std::vector<unsigned short> listIdBallTouched;
 
    bool goalTouch = false;
@@ -112,7 +109,6 @@ private:
       minuteur{ true },
       filterShader{ FilterShader::FilterShader() }
    {
-      //initPhysics(true);
    }
 
 public:
@@ -139,7 +135,6 @@ public:
    };
 
 public:
-   //physx::PxRigidDynamic* createWall(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ);
 
    void initPhysics(bool interactive);
 
@@ -174,11 +169,6 @@ public:
       elementPhysX->release();
    }
 
-
-   // FILTERING
-
-   
-
    //MAIN
 public:
    int snippetMain(int, const char*const*);
@@ -187,23 +177,9 @@ public:
       return pVehicule.get();
    }
 
-   physx::PxTransform changeGoalPosition(physx::PxTransform* _positionGoal) {
-      physx::PxTransform newPositionGoal{ _positionGoal->p.x + 100.f, _positionGoal->p.y, _positionGoal->p.z + 100.f };
-      *_positionGoal = newPositionGoal;
-      return newPositionGoal;
-   }
-
-   void contactDetected(const unsigned short indexBall) {
-      listIdBallTouched.push_back(indexBall);
-   }
-
    void goalAtteint() {
       goalTouch = true;
       pGoal->changePosition();
    }
-
-   physx::PxRigidDynamic* createBall(const physx::PxTransform& t, const physx::PxReal& rayon, const physx::PxVec3& velocity);
-   //private:
-      //void gestionCollision(const unsigned short indexBall);
 };
 #endif

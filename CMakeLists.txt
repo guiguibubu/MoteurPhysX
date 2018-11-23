@@ -149,6 +149,14 @@ target_link_libraries(Simulation "$<$<CONFIG:DEBUG>:${SIMULATION_TARGET_LINK_LIB
 target_compile_options(Simulation PUBLIC "$<$<CONFIG:RELEASE>:${SIMULATION_RELEASE_OPTIONS}>")
 target_compile_options(Simulation PUBLIC "$<$<CONFIG:DEBUG>:${SIMULATION_DEBUG_OPTIONS}>")
 
+file(TO_NATIVE_PATH ${DOSSIER_API_PHYSX}/DLL DOSSIER_MOTEUR_PHYSX_NATIVE_PATH)
+file(TO_NATIVE_PATH ${DOSSIER_BIN_SORTIE} DOSSIER_BIN_SORTIE_NATIVE_PATH)
+
+add_custom_command(TARGET Simulation
+                   POST_BUILD
+                   COMMAND xcopy ARGS "/y /f /e \"${DOSSIER_MOTEUR_PHYSX_NATIVE_PATH}\"  \"${DOSSIER_BIN_SORTIE_NATIVE_PATH}\""
+                   COMMENT "Running copy")
+
 # Filters
 include( Filters.cmake )
 CREATE_VISUAL_STUDIO_FILTERS(SIMULATION)

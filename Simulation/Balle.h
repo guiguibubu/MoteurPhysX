@@ -8,11 +8,12 @@ class Balle {
 public:
    static const unsigned short VITESSE_BALLE;
    static const physx::PxReal RAYON_BALLE;
+   static const unsigned short NB_BALLE_VIE_MAX;
 private:
    physx::PxReal rayon;
    physx::PxVec3 vitesse;
-   //std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> rigidBody;
-   physx::PxRigidDynamic* rigidBody;
+   std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>> rigidBody;
+   //physx::PxRigidDynamic* rigidBody;
    physx::PxPhysics* gPhysics;
    physx::PxMaterial* gMaterial;
 
@@ -25,8 +26,8 @@ public:
       , rayon { _rayon }
       , gPhysics{ _gPhysics }
       , gMaterial{ _gPhysics->createMaterial(0.f, 0.f, 0.f) }
-      //, rigidBody { std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>>(_gPhysics->createRigidDynamic(t), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); }) } 
-      , rigidBody{ _gPhysics->createRigidDynamic(t) }
+      , rigidBody { std::unique_ptr<physx::PxRigidDynamic, std::function<void(physx::PxBase*)>>(_gPhysics->createRigidDynamic(t), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); }) } 
+      //, rigidBody{ _gPhysics->createRigidDynamic(t) }
    {
       std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>> shape = std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>>(gPhysics->createShape(physx::PxSphereGeometry(rayon), *gMaterial, true, physx::PxShapeFlag::eSIMULATION_SHAPE), [](physx::PxBase* pxBaseToDelete) { pxBaseToDelete->release(); });
       rigidBody->attachShape(*shape);
@@ -38,7 +39,7 @@ public:
    }
 
    physx::PxRigidDynamic* getRigidBody() {
-      return rigidBody;
+      return rigidBody.get();
    }
 
 };

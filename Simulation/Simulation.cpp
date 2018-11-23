@@ -72,16 +72,6 @@ physx::PxRigidStatic* Simulation::createSol() {
    return pSol.get();
 }
 
-physx::PxRigidDynamic* Simulation::createBall(const physx::PxTransform& t, const physx::PxReal& rayon, const physx::PxVec3& velocity)
-{
-   physx::PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, physx::PxSphereGeometry(rayon), *gMaterial, 10.0f);
-   dynamic->setAngularDamping(0.5f);
-   dynamic->setLinearVelocity(velocity);
-   //gScene->addActor(*dynamic);
-   return dynamic;
-}
-
-
 physx::PxRigidDynamic* Simulation::createVehicule(const physx::PxTransform& t, physx::PxReal halfExtendX, physx::PxReal halfExtendY, physx::PxReal halfExtendZ) {
 
    std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>> shape = std::unique_ptr<physx::PxShape, std::function<void(physx::PxBase*)>>(
@@ -148,6 +138,10 @@ physx::PxRigidDynamic* Simulation::tirBalle(const Vehicule& vehicule, const phys
    auto rigidBody = balle->getRigidBody();
    listBall.push_back(std::move(balle));
 
+   // on limite le nombre de balles vivantes en meme temps
+   if (listBall.size() > Balle::NB_BALLE_VIE_MAX) {
+      listBall.pop_front();
+   }
    return rigidBody;
 }
 
