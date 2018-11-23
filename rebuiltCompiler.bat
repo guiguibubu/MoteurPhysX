@@ -17,7 +17,7 @@ if ErrorLevel == 1 (
 )
 
 
-SET bDirVar=build-solution-x64
+SET bDirVar=compiler
 
 echo Removing Old Build Directory
 

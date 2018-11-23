@@ -31,7 +31,9 @@ call DeleteSubDirectory.bat Debug
 call DeleteSubDirectory.bat Release
 call DeleteSubDirectory.bat x64
 call DeleteSubDirectory.bat build-solution-x64
+call DeleteSubDirectory.bat compiler
 call DeleteSubDirectory.bat CMakeFiles
+call DeleteSubDirectory.bat Bin
 
 if exist */Debug ( 
 		echo -- Failed to remove a Debug directory
