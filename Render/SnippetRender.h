@@ -28,11 +28,12 @@
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 
-#ifndef PHYSX_SNIPPET_RENDER_H
-#define PHYSX_SNIPPET_RENDER_H
+#ifndef RENDER_H
+#define RENDER_H
 
-#include "PxPhysicsAPI.h"
-#include "foundation/PxPreprocessor.h"
+//#include "PxPhysicsAPI.h"
+#include "commonImport.h"
+//#include "foundation/PxPreprocessor.h"
 
 #if PX_WINDOWS
 #include <windows.h>
@@ -46,16 +47,15 @@
 #error platform not supported.
 #endif
 
-namespace Snippets
-{
-void setupDefaultWindow(const char* name);
-void setupDefaultRenderState();
+class Render {
+public:
+   static void setupDefaultWindow(const char* name);
+   static void setupDefaultRenderState();
 
-void startRender(const physx::PxVec3& cameraEye, const physx::PxVec3& cameraDir, physx::PxReal nearClip = 1.f, physx::PxReal farClip = 10000.f);
-void renderActors(physx::PxRigidActor** actors, const physx::PxU32 numActors, bool shadows = false, const physx::PxVec3 & color = physx::PxVec3(0.0f, 0.75f, 0.0f));
-void finishRender();
-}
-
+   static void startRender(const physx::PxVec3& cameraEye, const physx::PxVec3& cameraDir, physx::PxReal nearClip = 1.f, physx::PxReal farClip = 10000.f);
+   static void renderActors(physx::PxRigidActor** actors, const physx::PxU32 numActors, bool shadows = false, const physx::PxVec3 & color = physx::PxVec3(0.0f, 0.75f, 0.0f));
+   static void finishRender();
+};
 #define MAX_NUM_ACTOR_SHAPES 128
 
 #endif //PHYSX_SNIPPET_RENDER_H

@@ -29,8 +29,6 @@
 
 #include "SnippetRender.h"
 
-using namespace physx;
-
 static float gCylinderData[]={
 	1.0f,0.0f,1.0f,1.0f,0.0f,1.0f,1.0f,0.0f,0.0f,1.0f,0.0f,0.0f,
 	0.866025f,0.500000f,1.0f,0.866025f,0.500000f,1.0f,0.866025f,0.500000f,0.0f,0.866025f,0.500000f,0.0f,
@@ -48,28 +46,28 @@ static float gCylinderData[]={
 };
 
 #define MAX_NUM_MESH_VEC3S  1024
-static PxVec3 gVertexBuffer[MAX_NUM_MESH_VEC3S];
+static physx::PxVec3 gVertexBuffer[MAX_NUM_MESH_VEC3S];
 
-void renderGeometry(const PxGeometryHolder& h)
+void renderGeometry(const physx::PxGeometryHolder& h)
 {
 	switch(h.getType())
 	{
-	case PxGeometryType::eBOX:			
+	case physx::PxGeometryType::eBOX:
 		{
 			glScalef(h.box().halfExtents.x, h.box().halfExtents.y, h.box().halfExtents.z);
 			glutSolidCube(2.0);
 		}
 		break;
-	case PxGeometryType::eSPHERE:		
+	case physx::PxGeometryType::eSPHERE:
 		{
 			glutSolidSphere(GLdouble(h.sphere().radius), 10, 10);
 		}
 		break;
-	case PxGeometryType::eCAPSULE:
+	case physx::PxGeometryType::eCAPSULE:
 		{
 
-			const PxF32 radius = h.capsule().radius;
-			const PxF32 halfHeight = h.capsule().halfHeight;
+			const physx::PxF32 radius = h.capsule().radius;
+			const physx::PxF32 halfHeight = h.capsule().halfHeight;
 
 			//Sphere
 			glPushMatrix();
@@ -100,40 +98,40 @@ void renderGeometry(const PxGeometryHolder& h)
 			glPopMatrix();
 		}
 		break;
-	case PxGeometryType::eCONVEXMESH:
+	case physx::PxGeometryType::eCONVEXMESH:
 		{
 
 			//Compute triangles for each polygon.
-			const PxVec3 scale = h.convexMesh().scale.scale;
-			PxConvexMesh* mesh = h.convexMesh().convexMesh;
-			const PxU32 nbPolys = mesh->getNbPolygons();
-			const PxU8* polygons = mesh->getIndexBuffer();
-			const PxVec3* verts = mesh->getVertices();
-			PxU32 nbVerts = mesh->getNbVertices();
+			const physx::PxVec3 scale = h.convexMesh().scale.scale;
+         physx::PxConvexMesh* mesh = h.convexMesh().convexMesh;
+			const physx::PxU32 nbPolys = mesh->getNbPolygons();
+			const physx::PxU8* polygons = mesh->getIndexBuffer();
+			const physx::PxVec3* verts = mesh->getVertices();
+         physx::PxU32 nbVerts = mesh->getNbVertices();
 			PX_UNUSED(nbVerts);
 
-			PxU32 numTotalTriangles = 0;
-			for(PxU32 i = 0; i < nbPolys; i++)
+         physx::PxU32 numTotalTriangles = 0;
+			for(physx::PxU32 i = 0; i < nbPolys; i++)
 			{
-				PxHullPolygon data;
+            physx::PxHullPolygon data;
 				mesh->getPolygonData(i, data);
 
-				const PxU32 nbTris = PxU32(data.mNbVerts - 2);
-				const PxU8 vref0 = polygons[data.mIndexBase + 0];
+				const physx::PxU32 nbTris = physx::PxU32(data.mNbVerts - 2);
+				const physx::PxU8 vref0 = polygons[data.mIndexBase + 0];
 				PX_ASSERT(vref0 < nbVerts);
-				for(PxU32 j=0;j<nbTris;j++)
+				for(physx::PxU32 j=0;j<nbTris;j++)
 				{
-					const PxU32 vref1 = polygons[data.mIndexBase + 0 + j + 1];
-					const PxU32 vref2 = polygons[data.mIndexBase + 0 + j + 2];
+					const physx::PxU32 vref1 = polygons[data.mIndexBase + 0 + j + 1];
+					const physx::PxU32 vref2 = polygons[data.mIndexBase + 0 + j + 2];
 
 					//generate face normal:
-					PxVec3 e0 = verts[vref1] - verts[vref0];
-					PxVec3 e1 = verts[vref2] - verts[vref0];
+               physx::PxVec3 e0 = verts[vref1] - verts[vref0];
+               physx::PxVec3 e1 = verts[vref2] - verts[vref0];
 
 					PX_ASSERT(vref1 < nbVerts);
 					PX_ASSERT(vref2 < nbVerts);
 
-					PxVec3 fnormal = e0.cross(e1);
+               physx::PxVec3 fnormal = e0.cross(e1);
 					fnormal.normalize();
 			
 					if(numTotalTriangles*6 < MAX_NUM_MESH_VEC3S)
@@ -158,24 +156,24 @@ void renderGeometry(const PxGeometryHolder& h)
 			glPopMatrix();
 		}
 		break;
-	case PxGeometryType::eTRIANGLEMESH:
+	case physx::PxGeometryType::eTRIANGLEMESH:
 		{
-			const PxTriangleMeshGeometry& triGeom = h.triangleMesh();
-			const PxTriangleMesh& mesh = *triGeom.triangleMesh;
-			const PxVec3 scale = triGeom.scale.scale;
+			const physx::PxTriangleMeshGeometry& triGeom = h.triangleMesh();
+			const physx::PxTriangleMesh& mesh = *triGeom.triangleMesh;
+			const physx::PxVec3 scale = triGeom.scale.scale;
 
-			const PxU32 triangleCount = mesh.getNbTriangles();
-			const PxU32 has16BitIndices = mesh.getTriangleMeshFlags() & PxTriangleMeshFlag::e16_BIT_INDICES;
+			const physx::PxU32 triangleCount = mesh.getNbTriangles();
+			const physx::PxU32 has16BitIndices = mesh.getTriangleMeshFlags() & physx::PxTriangleMeshFlag::e16_BIT_INDICES;
 			const void* indexBuffer = mesh.getTriangles();
 
-			const PxVec3* vertexBuffer = mesh.getVertices();
+			const physx::PxVec3* vertexBuffer = mesh.getVertices();
 
-			const PxU32* intIndices = reinterpret_cast<const PxU32*>(indexBuffer);
-			const PxU16* shortIndices = reinterpret_cast<const PxU16*>(indexBuffer);
-			PxU32 numTotalTriangles = 0;
-			for(PxU32 i=0; i < triangleCount; ++i)
+			const physx::PxU32* intIndices = reinterpret_cast<const physx::PxU32*>(indexBuffer);
+			const physx::PxU16* shortIndices = reinterpret_cast<const physx::PxU16*>(indexBuffer);
+         physx::PxU32 numTotalTriangles = 0;
+			for(physx::PxU32 i=0; i < triangleCount; ++i)
 			{
-				PxVec3 triVert[3];
+            physx::PxVec3 triVert[3];
 
 				if(has16BitIndices)
 				{
@@ -190,7 +188,7 @@ void renderGeometry(const PxGeometryHolder& h)
 					triVert[2] = vertexBuffer[*intIndices++];
 				}
 
-				PxVec3 fnormal = (triVert[1] - triVert[0]).cross(triVert[2] - triVert[0]);
+            physx::PxVec3 fnormal = (triVert[1] - triVert[0]).cross(triVert[2] - triVert[0]);
 				fnormal.normalize();
 
 				if(numTotalTriangles*6 < MAX_NUM_MESH_VEC3S)
@@ -216,26 +214,20 @@ void renderGeometry(const PxGeometryHolder& h)
 			glPopMatrix();
 		}
 		break;
-	case PxGeometryType::eINVALID:
-	case PxGeometryType::eHEIGHTFIELD:
-	case PxGeometryType::eGEOMETRY_COUNT:	
-	case PxGeometryType::ePLANE:
+	case physx::PxGeometryType::eINVALID:
+	case physx::PxGeometryType::eHEIGHTFIELD:
+	case physx::PxGeometryType::eGEOMETRY_COUNT:
+	case physx::PxGeometryType::ePLANE:
 		break;
 	}
 }
 
-namespace Snippets
-{
-
-namespace
-{
 void reshapeCallback(int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
-}
 
-void setupDefaultWindow(const char *name)
+void Render::setupDefaultWindow(const char *name)
 {
 	char* namestr = new char[strlen(name)+1];
 	strcpy(namestr, name);
@@ -244,16 +236,16 @@ void setupDefaultWindow(const char *name)
 
 	glutInit(&argc, argv);
 	
-	glutInitWindowSize(512, 512);
+	glutInitWindowSize(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 	glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH);
 	int mainHandle = glutCreateWindow(name);
 	glutSetWindow(mainHandle);
 	glutReshapeFunc(reshapeCallback);
-	
+   //glutFullScreen();
 	delete[] namestr;
 }
 
-void setupDefaultRenderState()
+void Render::setupDefaultRenderState()
 {
 	// Setup default render states
 	glClearColor(0.3f, 0.4f, 0.5f, 1.0);
@@ -262,10 +254,10 @@ void setupDefaultRenderState()
 
 	// Setup lighting
 	glEnable(GL_LIGHTING);
-	PxReal ambientColor[]	= { 0.0f, 0.1f, 0.2f, 0.0f };
-	PxReal diffuseColor[]	= { 1.0f, 1.0f, 1.0f, 0.0f };		
-	PxReal specularColor[]	= { 0.0f, 0.0f, 0.0f, 0.0f };		
-	PxReal position[]		= { 100.0f, 100.0f, 400.0f, 1.0f };		
+   physx::PxReal ambientColor[]	= { 0.0f, 0.1f, 0.2f, 0.0f };
+   physx::PxReal diffuseColor[]	= { 1.0f, 1.0f, 1.0f, 0.0f };
+   physx::PxReal specularColor[]	= { 0.0f, 0.0f, 0.0f, 0.0f };
+   physx::PxReal position[]		= { 100.0f, 100.0f, 400.0f, 1.0f };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientColor);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseColor);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
@@ -274,7 +266,7 @@ void setupDefaultRenderState()
 }
 
 
-void startRender(const PxVec3& cameraEye, const PxVec3& cameraDir, PxReal clipNear, PxReal clipFar)
+void Render::startRender(const physx::PxVec3& cameraEye, const physx::PxVec3& cameraDir, physx::PxReal clipNear, physx::PxReal clipFar)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -290,22 +282,22 @@ void startRender(const PxVec3& cameraEye, const PxVec3& cameraDir, PxReal clipNe
 	glColor4f(0.4f, 0.4f, 0.4f, 1.0f);
 }
 
-void renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows, const PxVec3 & color)
+void Render::renderActors(physx::PxRigidActor** actors, const physx::PxU32 numActors, bool shadows, const physx::PxVec3 & color)
 {
-	PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
-	for(PxU32 i=0;i<numActors;i++)
+   physx::PxShape* shapes[MAX_NUM_ACTOR_SHAPES];
+	for(physx::PxU32 i=0;i<numActors;i++)
 	{
-		const PxU32 nbShapes = actors[i]->getNbShapes();
+		const physx::PxU32 nbShapes = actors[i]->getNbShapes();
 		PX_ASSERT(nbShapes <= MAX_NUM_ACTOR_SHAPES);
 		actors[i]->getShapes(shapes, nbShapes);
-		bool sleeping = actors[i]->is<PxRigidDynamic>() ? actors[i]->is<PxRigidDynamic>()->isSleeping() : false; 
+		bool sleeping = actors[i]->is<physx::PxRigidDynamic>() ? actors[i]->is<physx::PxRigidDynamic>()->isSleeping() : false;
 
-		for(PxU32 j=0;j<nbShapes;j++)
+		for(physx::PxU32 j=0;j<nbShapes;j++)
 		{
-			const PxMat44 shapePose(PxShapeExt::getGlobalPose(*shapes[j], *actors[i]));
-			PxGeometryHolder h = shapes[j]->getGeometry();
+			const physx::PxMat44 shapePose(physx::PxShapeExt::getGlobalPose(*shapes[j], *actors[i]));
+         physx::PxGeometryHolder h = shapes[j]->getGeometry();
 
-			if (shapes[j]->getFlags() & PxShapeFlag::eTRIGGER_SHAPE)
+			if (shapes[j]->getFlags() & physx::PxShapeFlag::eTRIGGER_SHAPE)
 				glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 			
 			// render object
@@ -313,7 +305,7 @@ void renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows, co
 			glMultMatrixf(reinterpret_cast<const float*>(&shapePose));
 			if(sleeping)
 			{
-				PxVec3 darkColor = color * 0.25f;
+            physx::PxVec3 darkColor = color * 0.25f;
 				glColor4f(darkColor.x, darkColor.y, darkColor.z, 1.0f);
 			}
 			else
@@ -325,8 +317,8 @@ void renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows, co
 
 			if(shadows)
 			{
-				const PxVec3 shadowDir(0.0f, -0.7071067f, -0.7071067f);
-				const PxReal shadowMat[]={ 1,0,0,0, -shadowDir.x/shadowDir.y,0,-shadowDir.z/shadowDir.y,0, 0,0,1,0, 0,0,0,1 };
+				const physx::PxVec3 shadowDir(0.0f, -0.7071067f, -0.7071067f);
+				const physx::PxReal shadowMat[]={ 1,0,0,0, -shadowDir.x/shadowDir.y,0,-shadowDir.z/shadowDir.y,0, 0,0,1,0, 0,0,0,1 };
 				glPushMatrix();						
 				glMultMatrixf(shadowMat);
 				glMultMatrixf(reinterpret_cast<const float*>(&shapePose));
@@ -340,11 +332,8 @@ void renderActors(PxRigidActor** actors, const PxU32 numActors, bool shadows, co
 	}
 }
 
-void finishRender()
+void Render::finishRender()
 {
 	glutSwapBuffers();
 }
-
-
-} //namespace Snippets
 

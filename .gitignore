@@ -13,3 +13,4 @@ Bin/
 *.pdb
 *.tmp
 *.bsc
+Include/SnippetRender/
