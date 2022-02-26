@@ -28,16 +28,18 @@
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 
-#include <iostream>
-
 #include "SnippetCamera.h"
 #include <ctype.h>
-#include "foundation/PxMat33.h"
+//#include "foundation/PxMat33.h"
 
 using namespace physx;
 
-namespace Snippets
-{
+void Camera::zoomUp() {
+   mEye += mDir * 2.0f*1.0f;
+}
+void Camera::zoomDown() {
+   mEye -= mDir * 2.0f*1.0f;
+}
 
 Camera::Camera(const PxVec3& eye, const PxVec3& dir)
 {
@@ -50,7 +52,8 @@ Camera::Camera(const PxVec3& eye, const PxVec3& dir)
 void Camera::handleMouse(int button, int state, int x, int y)
 {
 	PX_UNUSED(state);
-	PX_UNUSED(button);
+    PX_UNUSED(button);
+    
 	mMouseX = x;
 	mMouseY = y;
 }
@@ -119,8 +122,5 @@ PxVec3 Camera::getEye() const
 PxVec3 Camera::getDir() const
 { 
 	return mDir; 
-}
-
-
 }
 

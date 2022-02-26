@@ -28,13 +28,12 @@
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 
-#ifndef PHYSX_SNIPPET_CAMERA_H
-#define PHYSX_SNIPPET_CAMERA_H
+#ifndef CAMERA_H
+#define CAMERA_H
 
 //#include "foundation/PxTransform.h"
+#include "commonImport.h"
 
-namespace Snippets
-{
 class Camera
 {
 public:
@@ -48,15 +47,15 @@ public:
 	physx::PxVec3		getEye()	const;
 	physx::PxVec3		getDir()	const;
 	physx::PxTransform	getTransform() const;
+
+    void zoomUp();
+    void zoomDown();
 private:
 	physx::PxVec3	mEye;
 	physx::PxVec3	mDir;
 	int				mMouseX;
 	int				mMouseY;
 };
-
-
-}
 
 
 #endif //PHYSX_SNIPPET_CAMERA_H
