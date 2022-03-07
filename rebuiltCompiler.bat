@@ -27,12 +27,16 @@ mkdir %bDirVar%
 
 cd %bDirVar%
 
+if not defined CMAKE_GENERATOR (
+    set CMAKE_GENERATOR="Visual Studio 16 2019"
+) 
+
 if exist "%CMAKE_PATH%/cmake.exe" (
-"%CMAKE_PATH%/cmake" .. -G "Visual Studio 16 2019"
+"%CMAKE_PATH%/cmake" .. -G %CMAKE_GENERATOR%
 goto generated
 )
 
-cmake .. -G "Visual Studio 16 2019"
+cmake .. -G %CMAKE_GENERATOR%
 
 :generated
 
